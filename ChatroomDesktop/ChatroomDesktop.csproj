@@ -1,11 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net9.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWindowsForms>true</UseWindowsForms>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="src\Models\" />
+      <Folder Include="src\Utilities\" />
+      <Folder Include="src\ViewModels\" />
+      <Folder Include="Tests\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="src\Views\Form1.cs">
+        <SubType>Form</SubType>
+      </Compile>
+    </ItemGroup>
 
 </Project>
