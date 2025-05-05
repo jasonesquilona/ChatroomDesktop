@@ -2,13 +2,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+
 namespace ChatServer;
 
 public class Server
 {
     
     private TcpListener _tcpListener;
-    private List<TcpClient> _clients = new List<TcpClient>();
+    private List<Client> _clients = new List<Client>();
     
     private object _clientsLock = new object();
     public Server(IPAddress ip, int port)
@@ -23,21 +24,31 @@ public class Server
         Console.WriteLine("Listening for connections");
         while (true)
         {
-            var client = await _tcpListener.AcceptTcpClientAsync();
-            lock (_clientsLock)
-            {
-                _clients.Add(client);
-                Console.WriteLine($"Client connected: {client.Client.RemoteEndPoint}");
-                _ = HandleClientAsync(client);
-            }
+            var clientID = await _tcpListener.AcceptTcpClientAsync();
+            _ = HandleNewConnection(clientID);
         }
     }
 
-    private async Task HandleClientAsync(TcpClient client)
+    private async Task HandleNewConnection(TcpClient clientID)
+    {
+        NetworkStream stream = clientID.GetStream();
+        var buffer = new byte[1024];
+        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+        var name = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        var client = new Client(clientID, name);
+        lock (_clientsLock)
+        {
+            _clients.Add(client);
+            Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
+            _ = HandleClientAsync(client);
+        }
+    }
+
+    private async Task HandleClientAsync(Client client)
     {
         var buffer = new byte[1024];
-        NetworkStream stream = client.GetStream();
-
+        NetworkStream stream = client.ClientID.GetStream();
+    
         try
         {
             while (true)
@@ -46,7 +57,7 @@ public class Server
                 if (bytesRead == 0) break;
                 
                 var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                Console.WriteLine($"Client {client.Client.RemoteEndPoint} sent message: {message}");
+                Console.WriteLine($"Client {client.ClientID.Client.RemoteEndPoint}| {client.Name} sent message: {message}");
                 await BroadcastMessage(message, client);
             }
         }
@@ -60,29 +71,32 @@ public class Server
         }
     }
 
-    private async Task BroadcastMessage(string message, TcpClient sender)
+    private async Task BroadcastMessage(string message, Client sender)
     {
-        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
 
+        message = $"{sender.Name} : {message}";
+        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
         foreach (var client in _clients)
         {
-            if (client == sender)
+            var clientId = client.ClientID;
+            var name = client.Name;
+            if (clientId == sender.ClientID)
             {
                 Console.WriteLine($"Same Sender");
                 continue;
             }
-            NetworkStream stream = client.GetStream();
-            Console.WriteLine($"Sending message: {message} to {client.Client.RemoteEndPoint}");
+            NetworkStream stream = clientId.GetStream();
+            Console.WriteLine($"Sending message: {message} to {clientId.Client.RemoteEndPoint} | {name}");
             await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
         }
     }
 
-    public void DisconnectUser(TcpClient client)
+    public void DisconnectUser(Client client)
     {
         lock (_clientsLock)
         {
             _clients.Remove(client);
-            client.Close();
+            client.ClientID.Close();
         }
     }
 }

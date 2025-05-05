@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using ChatroomDesktop.Models;
 
 namespace ChatroomDesktop.Services;
 
@@ -15,11 +16,14 @@ public class NetworkService
     
     private CancellationTokenSource _cts;
     
+    private User _user;
+    
     public NetworkService()
     {
         this._tcpClient = new();
         this._sendLock = new(1);
         this._cts = new();
+        this._user = new();
     }
 
     public async Task SetUpConnection()
@@ -30,9 +34,15 @@ public class NetworkService
         IPAddress localIpAddress = localhost.AddressList[0];
         
         var ipEndPoint = new IPEndPoint(localIpAddress, 8080);
-        
+        Console.WriteLine("Hello, Welcome to the Chatroom! What is your username?");
+        var name = Console.ReadLine();
+        Console.WriteLine("Connecting...");
         await _tcpClient.ConnectAsync(ipEndPoint, _cts.Token);
         
+        var stream = _tcpClient.GetStream();
+        var data = Encoding.UTF8.GetBytes(name);
+        await stream.WriteAsync(data, 0, data.Length);
+        Console.WriteLine($"Connected to Server!");
     }
 
     public async Task HandleIncomingMessages()

@@ -9,7 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="src\Models\" />
       <Folder Include="src\Utilities\" />
       <Folder Include="src\ViewModels\" />
       <Folder Include="Tests\" />
