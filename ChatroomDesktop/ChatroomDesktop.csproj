@@ -9,15 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Folder Include="src\Presenter\" />
       <Folder Include="src\Utilities\" />
-      <Folder Include="src\ViewModels\" />
+      <Folder Include="src\Views\" />
       <Folder Include="Tests\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="src\Views\Form1.cs">
-        <SubType>Form</SubType>
-      </Compile>
     </ItemGroup>
 
 </Project>

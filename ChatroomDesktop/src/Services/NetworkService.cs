@@ -16,14 +16,14 @@ public class NetworkService
     
     private CancellationTokenSource _cts;
     
-    private User _user;
+    private UserModel _userModel;
     
     public NetworkService()
     {
         this._tcpClient = new();
         this._sendLock = new(1);
         this._cts = new();
-        this._user = new();
+        this._userModel = new();
     }
 
     public async Task SetUpConnection()

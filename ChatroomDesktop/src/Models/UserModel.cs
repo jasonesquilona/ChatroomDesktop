@@ -1,6 +1,6 @@
 namespace ChatroomDesktop.Models;
 
-public class User
+public class UserModel
 {
     private string username;
 
