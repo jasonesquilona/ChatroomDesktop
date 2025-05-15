@@ -22,7 +22,6 @@ public class ChatService
         _networkService.OnMessageReceived += ReceiveMessage;
         _sendLock = new SemaphoreSlim(0);
         _cts = new CancellationTokenSource();
-        _ = Task.Run(() => ProcessQueue(_cts.Token));
     }
 
     public async Task HandleUserInput(string input)
@@ -32,6 +31,12 @@ public class ChatService
             _sendLock.Release();
     }
 
+    public async Task ReadyQueue()
+    {
+        await ProcessQueue(_cts.Token);
+        Console.WriteLine("Queue has Closed");
+    }
+
     private void ReceiveMessage(Message message)
     {
         if (message.MessageType == "CHAT")
@@ -39,6 +44,11 @@ public class ChatService
             OnNewMessage?.Invoke(message);
         }
         else if (message.MessageType == "JOIN")
+        {
+            OnNewUser?.Invoke(message);
+            OnNewMessage?.Invoke(message);
+        }
+        else if (message.MessageType == "DISCONNECT")
         {
             OnNewUser?.Invoke(message);
             OnNewMessage?.Invoke(message);
@@ -57,6 +67,7 @@ public class ChatService
                 await SendMessage(message);
             }
         }
+        Console.WriteLine("Token Canceled");
     }
 
     private async Task SendMessage(string message)
@@ -66,8 +77,10 @@ public class ChatService
 
     public void CloseConnection()
     {
+        Console.WriteLine("Closing connection");
         _networkService.CloseConnection();
         _cts.Cancel();
+        _sendLock.Release();
     }
 
 }

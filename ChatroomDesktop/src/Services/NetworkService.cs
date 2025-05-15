@@ -57,21 +57,36 @@ public class NetworkService
             var stream = _tcpClient.GetStream();
             while (_cts.Token.IsCancellationRequested == false)
             {
-                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                if (bytesRead > 0) {
+                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, _cts.Token);
+                if (bytesRead > 0)
+                {
                     var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     Message message = JsonSerializer.Deserialize<Message>(jsonString);
                     OnMessageReceived?.Invoke(message);
                     Console.WriteLine($"Received {message.ChatMessage}");
-                }           
+                }
             }
-            stream.Close();
-            this._tcpClient.Close();
-        }   
+        }
         catch (Exception ex)
         {
-            Console.WriteLine("Connection closed or error:" + ex.Message);
+            if (ex is OperationCanceledException)
+            {
+                CloseStream();   
+            }
+            else
+            {
+                Console.WriteLine("Connection closed or error:" + ex.Message);
+            }
         }
+
+    }
+
+    private void CloseStream()
+    {
+        var stream = _tcpClient.GetStream();
+        stream.Close();
+        this._tcpClient.Close();
+        Console.WriteLine("Connection has been fully closed");
     }
 
     public async Task SendMessage(string message)
@@ -92,7 +107,7 @@ public class NetworkService
 
     public void CloseConnection()
     {
-        Console.WriteLine("Closing Connection");
         _cts.Cancel();
+        Console.WriteLine("Connection closed");
     }
 }

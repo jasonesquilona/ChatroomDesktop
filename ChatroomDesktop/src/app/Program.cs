@@ -28,10 +28,11 @@ static class Program
         var chatModel = new ChatModel();
         ChatService chatService = new ChatService(networkService);
         var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,networkService,chatService, user);
+        var recieve = chatService.ReadyQueue();
         var listen=  networkService.HandleIncomingMessages();
         Application.Run(mainView);
 
-        await Task.WhenAll(listen);
+        await Task.WhenAll(listen, recieve);
         /*
         NetworkService networkService = new NetworkService();
         ChatService chatService = new ChatService(networkService);

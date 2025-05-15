@@ -68,16 +68,15 @@ public class Server
             while (true)
             {
                 var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                if (bytesRead == 0) break;
+                if (bytesRead == 0)
+                {
+                    Console.WriteLine($"{client.Name} disconnected");
+                    break;
+                }
                 
                 var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Client {client.ClientID.Client.RemoteEndPoint}| {client.Name} sent message: {message}");
-                List<string> currClients = new List<string>();
-                foreach (var clientName in _clients)
-                {
-                    currClients.Add(clientName.Name);
-                }
-                var messageObj = new Message {MessageType = "CHAT",Sender  = client.Name, ChatMessage = message, UserList = currClients.ToArray()};
+                var messageObj = new Message {MessageType = "CHAT",Sender  = client.Name, ChatMessage = message, UserList = GetUserList()};
                 await BroadcastMessage(messageObj);
             }
         }
@@ -121,5 +120,18 @@ public class Server
             _clients.Remove(client);
             client.ClientID.Close();
         }
+        var messageObj = new Message {MessageType = "DISCONNECT",Sender  = client.Name, ChatMessage = $"{client.Name} has left", UserList = GetUserList()};
+        BroadcastMessage(messageObj);
+    }
+
+    private string[] GetUserList()
+    {
+        List<string> currClients = new List<string>();
+        foreach (var clientName in _clients)
+        {
+            currClients.Add(clientName.Name);
+        }
+        
+        return currClients.ToArray();
     }
 }
