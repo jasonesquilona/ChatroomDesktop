@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using ChatroomDesktop.Models;
 
 
 namespace ChatServer;
@@ -34,13 +36,25 @@ public class Server
         NetworkStream stream = clientID.GetStream();
         var buffer = new byte[1024];
         var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-        var name = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        var client = new Client(clientID, name);
-        lock (_clientsLock)
+        var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        Message message = JsonSerializer.Deserialize<Message>(jsonString);
+        if (message.MessageType == "JOIN")
         {
-            _clients.Add(client);
-            Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
-            _ = HandleClientAsync(client);
+            var name = message.Sender;
+            var client = new Client(clientID, name);
+            lock (_clientsLock)
+            {
+                _clients.Add(client);
+                Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
+                _ = HandleClientAsync(client);
+                List<string> currClients = new List<string>();
+                foreach (var clientName in _clients)
+                {
+                    currClients.Add(clientName.Name);
+                }
+                message.UserList = currClients.ToArray();
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -58,7 +72,13 @@ public class Server
                 
                 var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Client {client.ClientID.Client.RemoteEndPoint}| {client.Name} sent message: {message}");
-                await BroadcastMessage(message, client);
+                List<string> currClients = new List<string>();
+                foreach (var clientName in _clients)
+                {
+                    currClients.Add(clientName.Name);
+                }
+                var messageObj = new Message {MessageType = "CHAT",Sender  = client.Name, ChatMessage = message, UserList = currClients.ToArray()};
+                await BroadcastMessage(messageObj);
             }
         }
         catch (Exception ex)
@@ -71,22 +91,25 @@ public class Server
         }
     }
 
-    private async Task BroadcastMessage(string message, Client sender)
+    private async Task BroadcastMessage(Message message)
     {
-
-        message = $"{sender.Name} : {message}";
-        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+        if (message.MessageType == "JOIN")
+        {
+            message.ChatMessage = $"{message.Sender} has joined!";
+            
+        }
+        else if (message.MessageType == "CHAT")
+        {
+            message.ChatMessage = $"{message.Sender}: {message.ChatMessage}";
+        }
+        string jsonString = JsonSerializer.Serialize(message);
+        byte[] messageBytes = Encoding.UTF8.GetBytes(jsonString);
         foreach (var client in _clients)
         {
             var clientId = client.ClientID;
             var name = client.Name;
-            if (clientId == sender.ClientID)
-            {
-                Console.WriteLine($"Same Sender");
-                continue;
-            }
             NetworkStream stream = clientId.GetStream();
-            Console.WriteLine($"Sending message: {message} to {clientId.Client.RemoteEndPoint} | {name}");
+            Console.WriteLine($"Sending message: {message.ChatMessage} to {clientId.Client.RemoteEndPoint} | {name}");
             await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
         }
     }

@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using ChatroomDesktop.Models;
+using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
 
@@ -12,7 +14,7 @@ public class NetworkService
 
     private SemaphoreSlim _sendLock;
 
-    public event Action<String> OnMessageReceived;
+    public event Action<Message> OnMessageReceived;
     
     private CancellationTokenSource _cts;
     
@@ -26,7 +28,7 @@ public class NetworkService
         this._userModel = new();
     }
 
-    public async Task SetUpConnection()
+    public async Task SetUpConnection(string name)
     {
         var hostName = Dns.GetHostName();
         IPHostEntry localhost = await Dns.GetHostEntryAsync(hostName);
@@ -34,13 +36,13 @@ public class NetworkService
         IPAddress localIpAddress = localhost.AddressList[0];
         
         var ipEndPoint = new IPEndPoint(localIpAddress, 8080);
-        Console.WriteLine("Hello, Welcome to the Chatroom! What is your username?");
-        var name = Console.ReadLine();
         Console.WriteLine("Connecting...");
         await _tcpClient.ConnectAsync(ipEndPoint, _cts.Token);
         
         var stream = _tcpClient.GetStream();
-        var data = Encoding.UTF8.GetBytes(name);
+        var message = new Message{MessageType="JOIN", Sender = name};
+        string jsonString = JsonSerializer.Serialize(message);
+        var data = Encoding.UTF8.GetBytes(jsonString);
         await stream.WriteAsync(data, 0, data.Length);
         Console.WriteLine($"Connected to Server!");
     }
@@ -57,8 +59,10 @@ public class NetworkService
             {
                 var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 if (bytesRead > 0) {
-                    var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    Message message = JsonSerializer.Deserialize<Message>(jsonString);
                     OnMessageReceived?.Invoke(message);
+                    Console.WriteLine($"Received {message.ChatMessage}");
                 }           
             }
             stream.Close();

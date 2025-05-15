@@ -1,3 +1,5 @@
+using Message = ChatroomDesktop.Models.Message;
+
 namespace ChatroomDesktop.Services;
 
 public class ChatService
@@ -8,37 +10,48 @@ public class ChatService
     private SemaphoreSlim _sendLock;
     
     private Queue<string> _chatQueue = new Queue<string>();
-
+    
+    private CancellationTokenSource _cts;
+    
+    public event Action<Message> OnNewMessage;
+    
+    public event Action<Message> OnNewUser;
     public ChatService(NetworkService networkService)
     {
         this._networkService = networkService;
         _networkService.OnMessageReceived += ReceiveMessage;
         _sendLock = new SemaphoreSlim(0);
+        _cts = new CancellationTokenSource();
+        _ = Task.Run(() => ProcessQueue(_cts.Token));
     }
 
-    public async Task HandleUserInput()
+    public async Task HandleUserInput(string input)
     {
-
-        _ = Task.Run(ProcessQueue);
-        while (true)
-        {
-
-            string input = await Task.Run(() => Console.ReadLine());
+            //string input = await Task.Run(() => Console.ReadLine());
             _chatQueue.Enqueue(input);
             _sendLock.Release();
-        }
     }
 
-    private void ReceiveMessage(string message)
+    private void ReceiveMessage(Message message)
     {
-        Console.WriteLine(message);
-    }
-
-    private async Task ProcessQueue()
-    {
-        while (true)
+        if (message.MessageType == "CHAT")
         {
-            await _sendLock.WaitAsync();
+            OnNewMessage?.Invoke(message);
+        }
+        else if (message.MessageType == "JOIN")
+        {
+            OnNewUser?.Invoke(message);
+            OnNewMessage?.Invoke(message);
+        }
+        //Console.WriteLine(message);
+    }
+
+    private async Task ProcessQueue(CancellationToken token)
+    {
+        
+        while (!token.IsCancellationRequested)
+        {
+            await _sendLock.WaitAsync(token);
             if (_chatQueue.TryDequeue(out var message))
             {
                 await SendMessage(message);
@@ -54,6 +67,7 @@ public class ChatService
     public void CloseConnection()
     {
         _networkService.CloseConnection();
+        _cts.Cancel();
     }
 
 }
