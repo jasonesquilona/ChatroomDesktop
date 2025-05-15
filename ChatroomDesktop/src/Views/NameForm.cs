@@ -23,4 +23,5 @@ public partial class NameForm : Form, INameView
     {
         this.Close();
     }
+    
 }

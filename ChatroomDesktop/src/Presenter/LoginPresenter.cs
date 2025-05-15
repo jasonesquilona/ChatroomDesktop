@@ -25,6 +25,18 @@ public class LoginPresenter
         _user.Username = _view.Name;
         Console.WriteLine(_user.Username);
         await _networkService.SetUpConnection(_user.Username);
+        
+          
+        var mainView = new ChatroomForm();
+        var chatModel = new ChatModel();
+        ChatService chatService = new ChatService(_networkService);
+        var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
+        var recieve = chatService.ReadyQueue();
+        var listen=  _networkService.HandleIncomingMessages();
+        mainView.Show();
+        ((Form)_view).Hide();
+
+        await Task.WhenAll(listen, recieve);
         _view.CloseForm();
     }
 }
