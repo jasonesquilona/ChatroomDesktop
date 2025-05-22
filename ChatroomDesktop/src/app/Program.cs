@@ -21,6 +21,8 @@ static class Program
         var view = new NameForm();
         var user = new UserModel();
         NetworkService networkService = new NetworkService();
+        Console.WriteLine("Connecting...");
+        //await networkService.ConnectToServer();
         var presenter = new LoginPresenter(view, user, networkService);
         Application.Run((Form)view);
         

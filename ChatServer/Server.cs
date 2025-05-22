@@ -3,7 +3,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
-
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;
 
 namespace ChatServer;
 
@@ -11,13 +13,20 @@ public class Server
 {
     
     private TcpListener _tcpListener;
+    private TcpListener _tcpListenerSignup;
     private List<Client> _clients = new List<Client>();
+
+    private  SqlConnection _sqlConnection;
     
     private object _clientsLock = new object();
-    public Server(IPAddress ip, int port)
+    public Server(IPAddress ip)
     {
         var ipEndPoint = new IPEndPoint(ip, 8080);
         _tcpListener = new TcpListener(ipEndPoint);
+        var signUpEndPoint = new IPEndPoint(ip, 8081);
+        _tcpListenerSignup = new TcpListener(signUpEndPoint);
+        string connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=master;Integrated Security=True;";
+        _sqlConnection = new SqlConnection(connectionString);
     }
 
     public async Task ListenForClients()
@@ -30,7 +39,7 @@ public class Server
             _ = HandleNewConnection(clientID);
         }
     }
-
+    
     private async Task HandleNewConnection(TcpClient clientID)
     {
         NetworkStream stream = clientID.GetStream();
@@ -38,7 +47,20 @@ public class Server
         var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
         var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
         Message message = JsonSerializer.Deserialize<Message>(jsonString);
-        if (message.MessageType == "JOIN")
+        if (message?.MessageType == "SIGNUP")
+        {
+            var name = message.Sender;
+            var password = message.ChatMessage;
+            Console.WriteLine($"{name}: {password}");
+            var response = "201 User registered";
+            byte[] messageBytes = Encoding.UTF8.GetBytes(response);
+            await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+            bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            message = JsonSerializer.Deserialize<Message>(jsonString);
+        }
+        
+        if (message?.MessageType == "JOIN")
         {
             var name = message.Sender;
             var client = new Client(clientID, name);
