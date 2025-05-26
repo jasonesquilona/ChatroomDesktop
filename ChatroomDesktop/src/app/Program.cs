@@ -12,19 +12,12 @@ static class Program
     ///  The main entry point for the application.
     /// </summary>
     [STAThread]
-    static async Task Main()
+    static void Main()
     {
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
-
-        var view = new NameForm();
-        var user = new UserModel();
-        NetworkService networkService = new NetworkService();
-        Console.WriteLine("Connecting...");
-        //await networkService.ConnectToServer();
-        var presenter = new LoginPresenter(view, user, networkService);
-        Application.Run((Form)view);
+        RunAsync().GetAwaiter().GetResult();
         
         /*
         NetworkService networkService = new NetworkService();
@@ -41,5 +34,16 @@ static class Program
 
         Console.WriteLine("Chatroom Closing");*/
 
+    }
+
+    static async Task RunAsync()
+    {
+        var view = new NameForm();
+        var user = new UserModel();
+        NetworkService networkService = new NetworkService();
+        //await networkService.ConnectToServer();
+        var presenter = new LoginPresenter(view, user, networkService);
+        view.SetPresenter(presenter);
+        Application.Run((Form)view);
     }
 }

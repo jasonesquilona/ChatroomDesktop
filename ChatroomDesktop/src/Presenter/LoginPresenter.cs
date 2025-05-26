@@ -24,6 +24,7 @@ public class LoginPresenter
 
     private async void OnEnterClicked(object sender, EventArgs e)
     {
+        CheckCredentials(_view.Name, _view.Password);
         await SuccessfulLogin(_view.Name);
     }
 
@@ -73,5 +74,9 @@ public class LoginPresenter
     {
         
     }
-    
+
+    public async Task SetupConnection()
+    {
+        await _networkService.ConnectToServer();
+    }
 }

@@ -3,8 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
-using System.Data.SqlClient;
-using System.Data.SqlTypes;
+using Microsoft.Data.SqlClient;
 using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;
 
 namespace ChatServer;
@@ -13,20 +12,15 @@ public class Server
 {
     
     private TcpListener _tcpListener;
-    private TcpListener _tcpListenerSignup;
     private List<Client> _clients = new List<Client>();
-
-    private  SqlConnection _sqlConnection;
     
     private object _clientsLock = new object();
+    
+    private Lock _databasesLock = new Lock();
     public Server(IPAddress ip)
     {
         var ipEndPoint = new IPEndPoint(ip, 8080);
         _tcpListener = new TcpListener(ipEndPoint);
-        var signUpEndPoint = new IPEndPoint(ip, 8081);
-        _tcpListenerSignup = new TcpListener(signUpEndPoint);
-        string connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=master;Integrated Security=True;";
-        _sqlConnection = new SqlConnection(connectionString);
     }
 
     public async Task ListenForClients()
@@ -36,6 +30,7 @@ public class Server
         while (true)
         {
             var clientID = await _tcpListener.AcceptTcpClientAsync();
+            Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}");
             _ = HandleNewConnection(clientID);
         }
     }
@@ -44,43 +39,87 @@ public class Server
     {
         NetworkStream stream = clientID.GetStream();
         var buffer = new byte[1024];
-        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-        var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        Message message = JsonSerializer.Deserialize<Message>(jsonString);
-        if (message?.MessageType == "SIGNUP")
+        Client client = null;
+        try
         {
-            var name = message.Sender;
-            var password = message.ChatMessage;
-            Console.WriteLine($"{name}: {password}");
-            var response = "201 User registered";
-            byte[] messageBytes = Encoding.UTF8.GetBytes(response);
-            await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
-            bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-            jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            message = JsonSerializer.Deserialize<Message>(jsonString);
-        }
-        
-        if (message?.MessageType == "JOIN")
-        {
-            var name = message.Sender;
-            var client = new Client(clientID, name);
-            lock (_clientsLock)
+            while (true)
             {
-                _clients.Add(client);
-                Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
-                _ = HandleClientAsync(client);
-                List<string> currClients = new List<string>();
-                foreach (var clientName in _clients)
+                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                if (bytesRead == 0)
                 {
-                    currClients.Add(clientName.Name);
+                    Console.Write($"Client disconnected: {clientID.Client.RemoteEndPoint}");
+                    break;
                 }
-                message.UserList = currClients.ToArray();
-                BroadcastMessage(message);
+                Console.WriteLine("Message received");
+                var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Message received: {jsonString}");
+                Message? message = JsonSerializer.Deserialize<Message>(jsonString);
+                if (message?.MessageType == "SIGNUP")
+                {
+                    Console.WriteLine("Sign up request received");
+
+                    var sql = "INSERT INTO ChatSchema.Users (Username, Password) VALUES  (@username, @password)";
+
+                    if (!SendSQL(sql, message))
+                    {
+                        Console.WriteLine("Sign up failed");
+                    }
+
+                    var response = "201 User registered";
+                    byte[] messageBytes = Encoding.UTF8.GetBytes(response);
+                }
+                else if (message?.MessageType == "JOIN")
+                {
+                    var name = message.Sender;
+                    client = new Client(clientID, name);
+                    lock (_clientsLock)
+                    {
+                        _clients.Add(client);
+                        Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
+                        //_ = HandleClientAsync(client);
+                        List<string> currClients = new List<string>();
+                        foreach (var clientName in _clients)
+                        {
+                            currClients.Add(clientName.Name);
+                        }
+
+                        message.UserList = currClients.ToArray();
+                        BroadcastMessage(message);
+                    }
+                }
+                else if (message?.MessageType == "LOGIN")
+                {
+                    var sql = "SELECT * FROM ChatSchema.Users WHERE Username = @username AND Password = @password";
+                    if (!SendSQL(sql, message))
+                    {
+                        Console.WriteLine("Login failed");
+                    }
+                    else
+                    {
+
+                    }
+
+                }
+                else if (message?.MessageType == "CHAT")
+                {
+                    if(client != null){
+                        var messageObj = new Message {MessageType = "CHAT",Sender  = message.Sender, ChatMessage = message.ChatMessage, UserList = GetUserList()};
+                        await BroadcastMessage(messageObj);
+                    }
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            //DisconnectUser(clientID.Client);
         }
     }
 
-    private async Task HandleClientAsync(Client client)
+    /*private async Task HandleClientAsync(Client client)
     {
         var buffer = new byte[1024];
         NetworkStream stream = client.ClientID.GetStream();
@@ -110,9 +149,9 @@ public class Server
         {
           DisconnectUser(client);
         }
-    }
+    }*/
 
-    private async Task BroadcastMessage(Message message)
+    private async Task BroadcastMessage(Message? message)
     {
         if (message.MessageType == "JOIN")
         {
@@ -155,5 +194,44 @@ public class Server
         }
         
         return currClients.ToArray();
+    }
+
+    private bool SendSQL(string sql, Message? message)
+    {
+        var name = message.Sender;
+        var password = message.ChatMessage;
+        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
+        int rowsAffected;
+        using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+        {
+            Console.WriteLine($"Sending New User to Database");
+            try
+            {
+                sqlConnection.Open();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            Console.WriteLine($"Connected to Database");
+            using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+            {
+                Console.WriteLine("New Command");
+                sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
+                sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
+                Console.WriteLine("Executing Command");
+                rowsAffected = sqlCommand.ExecuteNonQuery();
+                Console.WriteLine($"rows affected: {rowsAffected}");
+            }
+        }
+        if (rowsAffected == 0)
+        {
+            Console.WriteLine("No rows affected");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 }

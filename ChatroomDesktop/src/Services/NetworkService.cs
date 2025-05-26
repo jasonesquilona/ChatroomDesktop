@@ -46,6 +46,7 @@ public class NetworkService
         var data = Encoding.UTF8.GetBytes(jsonString);
         await stream.WriteAsync(data, 0, data.Length);
         Console.WriteLine($"Connected to Server!");
+        _userModel.Username = name;
     }
 
     public async Task SendSignupData(string username, string password)
@@ -67,6 +68,7 @@ public class NetworkService
         await stream.WriteAsync(data, 0, data.Length);
         
         byte[] responseBuffer = new byte[1024]; // Adjust size as needed
+        Console.WriteLine($"Sent Signup Request to Server!");
         int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
         
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
@@ -124,9 +126,12 @@ public class NetworkService
 
     public async Task SendMessage(string message)
     {
-       var data = Encoding.UTF8.GetBytes(message);
+       var messageObj = new Message{MessageType="CHAT", Sender = _userModel.Username, ChatMessage = message};
+       string jsonString = JsonSerializer.Serialize(messageObj);
+       var data = Encoding.UTF8.GetBytes(jsonString);
        var stream = _tcpClient.GetStream();
        await _sendLock.WaitAsync();
+       Console.WriteLine($"Sending message: {messageObj}");
        try
        {
            await stream.WriteAsync(data, 0, data.Length);
@@ -151,10 +156,14 @@ public class NetworkService
         IPHostEntry localhost = await Dns.GetHostEntryAsync(Dns.GetHostName());
         // This is the IP address of the local machine
         IPAddress localIpAddress = localhost.AddressList[0];
-        
-        var ipEndPoint = new IPEndPoint(localIpAddress, 8080);
-        await _tcpClient.ConnectAsync(ipEndPoint, _cts.Token);
-        
+
+        if (localIpAddress != null)
+        {
+            var ipEndPoint = new IPEndPoint(localIpAddress, 8080);
+            Console.WriteLine("Attempting to connect to server...");
+            await _tcpClient.ConnectAsync(ipEndPoint).ConfigureAwait(false);
+        }
+
         _isConnected = true;
     }
 }

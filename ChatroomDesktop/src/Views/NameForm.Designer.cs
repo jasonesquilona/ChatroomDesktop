@@ -34,7 +34,7 @@ partial class NameForm
         txtName = new System.Windows.Forms.TextBox();
         enterBtn = new System.Windows.Forms.Button();
         label1 = new System.Windows.Forms.Label();
-        textBox1 = new System.Windows.Forms.TextBox();
+        txtPassword = new System.Windows.Forms.TextBox();
         label2 = new System.Windows.Forms.Label();
         signupButton = new System.Windows.Forms.Button();
         SuspendLayout();
@@ -66,13 +66,13 @@ partial class NameForm
         label1.Text = "Username";
         label1.Click += label1_Click;
         // 
-        // textBox1
+        // txtPassword
         // 
-        textBox1.Location = new System.Drawing.Point(229, 186);
-        textBox1.Name = "textBox1";
-        textBox1.Size = new System.Drawing.Size(264, 23);
-        textBox1.TabIndex = 3;
-        textBox1.UseSystemPasswordChar = true;
+        txtPassword.Location = new System.Drawing.Point(229, 186);
+        txtPassword.Name = "txtPassword";
+        txtPassword.Size = new System.Drawing.Size(264, 23);
+        txtPassword.TabIndex = 3;
+        txtPassword.UseSystemPasswordChar = true;
         // 
         // label2
         // 
@@ -99,7 +99,7 @@ partial class NameForm
         ClientSize = new System.Drawing.Size(800, 450);
         Controls.Add(signupButton);
         Controls.Add(label2);
-        Controls.Add(textBox1);
+        Controls.Add(txtPassword);
         Controls.Add(label1);
         Controls.Add(enterBtn);
         Controls.Add(txtName);
@@ -110,7 +110,7 @@ partial class NameForm
 
     private System.Windows.Forms.Button signupButton;
 
-    private System.Windows.Forms.TextBox textBox1;
+    private System.Windows.Forms.TextBox txtPassword;
     private System.Windows.Forms.Label label2;
 
     private System.Windows.Forms.Label label1;

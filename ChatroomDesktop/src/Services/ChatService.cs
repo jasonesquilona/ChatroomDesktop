@@ -72,6 +72,7 @@ public class ChatService
 
     private async Task SendMessage(string message)
     {
+        Console.WriteLine($"Chat Service: Sending message: {message}");
         await _networkService.SendMessage(message);
     }
 
