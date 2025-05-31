@@ -24,9 +24,8 @@ public class ChatService
         _cts = new CancellationTokenSource();
     }
 
-    public async Task HandleUserInput(string input)
+    public void HandleUserInput(string input)
     {
-            //string input = await Task.Run(() => Console.ReadLine());
             _chatQueue.Enqueue(input);
             _sendLock.Release();
     }
@@ -53,7 +52,6 @@ public class ChatService
             OnNewUser?.Invoke(message);
             OnNewMessage?.Invoke(message);
         }
-        //Console.WriteLine(message);
     }
 
     private async Task ProcessQueue(CancellationToken token)

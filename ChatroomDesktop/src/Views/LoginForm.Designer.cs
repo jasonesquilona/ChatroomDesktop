@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace ChatroomDesktop.Views;
 
-partial class NameForm
+partial class LoginForm
 {
     /// <summary>
     /// Required designer variable.
@@ -37,11 +37,12 @@ partial class NameForm
         txtPassword = new System.Windows.Forms.TextBox();
         label2 = new System.Windows.Forms.Label();
         signupButton = new System.Windows.Forms.Button();
+        incorrectLabel = new System.Windows.Forms.Label();
         SuspendLayout();
         // 
         // txtName
         // 
-        txtName.Location = new System.Drawing.Point(229, 124);
+        txtName.Location = new System.Drawing.Point(239, 150);
         txtName.Name = "txtName";
         txtName.Size = new System.Drawing.Size(264, 23);
         txtName.TabIndex = 0;
@@ -49,7 +50,7 @@ partial class NameForm
         // 
         // enterBtn
         // 
-        enterBtn.Location = new System.Drawing.Point(418, 227);
+        enterBtn.Location = new System.Drawing.Point(428, 259);
         enterBtn.Name = "enterBtn";
         enterBtn.Size = new System.Drawing.Size(75, 23);
         enterBtn.TabIndex = 1;
@@ -59,7 +60,7 @@ partial class NameForm
         // 
         // label1
         // 
-        label1.Location = new System.Drawing.Point(229, 98);
+        label1.Location = new System.Drawing.Point(239, 124);
         label1.Name = "label1";
         label1.Size = new System.Drawing.Size(100, 23);
         label1.TabIndex = 2;
@@ -68,7 +69,7 @@ partial class NameForm
         // 
         // txtPassword
         // 
-        txtPassword.Location = new System.Drawing.Point(229, 186);
+        txtPassword.Location = new System.Drawing.Point(239, 202);
         txtPassword.Name = "txtPassword";
         txtPassword.Size = new System.Drawing.Size(264, 23);
         txtPassword.TabIndex = 3;
@@ -76,7 +77,7 @@ partial class NameForm
         // 
         // label2
         // 
-        label2.Location = new System.Drawing.Point(229, 160);
+        label2.Location = new System.Drawing.Point(239, 176);
         label2.Name = "label2";
         label2.Size = new System.Drawing.Size(100, 23);
         label2.TabIndex = 4;
@@ -85,18 +86,30 @@ partial class NameForm
         // 
         // signupButton
         // 
-        signupButton.Location = new System.Drawing.Point(308, 273);
+        signupButton.Location = new System.Drawing.Point(324, 298);
         signupButton.Name = "signupButton";
         signupButton.Size = new System.Drawing.Size(93, 23);
         signupButton.TabIndex = 5;
         signupButton.Text = "Sign Up";
         signupButton.UseVisualStyleBackColor = true;
         // 
-        // NameForm
+        // incorrectLabel
+        // 
+        incorrectLabel.ForeColor = System.Drawing.Color.Red;
+        incorrectLabel.Location = new System.Drawing.Point(239, 237);
+        incorrectLabel.Name = "incorrectLabel";
+        incorrectLabel.Size = new System.Drawing.Size(264, 23);
+        incorrectLabel.TabIndex = 6;
+        incorrectLabel.Text = "Incorrect Username or Password";
+        incorrectLabel.Visible = false;
+        incorrectLabel.Click += label3_Click;
+        // 
+        // LoginForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
+        Controls.Add(incorrectLabel);
         Controls.Add(signupButton);
         Controls.Add(label2);
         Controls.Add(txtPassword);
@@ -107,6 +120,8 @@ partial class NameForm
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.Label incorrectLabel;
 
     private System.Windows.Forms.Button signupButton;
 

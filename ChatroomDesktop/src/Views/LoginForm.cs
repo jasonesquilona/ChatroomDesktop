@@ -2,14 +2,14 @@ using ChatroomDesktop.Presenter;
 
 namespace ChatroomDesktop.Views;
 
-public partial class NameForm : Form, INameView
+public partial class LoginForm : Form, ILoginView
 {
     
     public event EventHandler? SignUpClicked;
     public event EventHandler? FormClosed;
     
     private LoginPresenter _presenter;
-    public NameForm()
+    public LoginForm()
     {
         InitializeComponent();
         enterBtn.Click += (s,e) => EnterClicked?.Invoke(this, EventArgs.Empty);
@@ -66,5 +66,15 @@ public partial class NameForm : Form, INameView
     {
         FormClosed?.Invoke(this, EventArgs.Empty);
         base.OnFormClosing(e);
+    }
+
+    public void IncorrectLoginDetails()
+    {
+        incorrectLabel.Visible = true;
+    }
+
+    private void label3_Click(object sender, EventArgs e)
+    {
+        throw new System.NotImplementedException();
     }
 }

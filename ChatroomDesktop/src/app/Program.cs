@@ -18,27 +18,11 @@ static class Program
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
         RunAsync().GetAwaiter().GetResult();
-        
-        /*
-        NetworkService networkService = new NetworkService();
-        ChatService chatService = new ChatService(networkService);
-
-        await networkService.SetUpConnection();
-
-        Console.WriteLine("Hello Welcome to Chatroom Desktop! Type to send message");
-        var send = chatService.HandleUserInput();
-        var listen=  networkService.HandleIncomingMessages();
-
-
-        await Task.WhenAll(listen, send);
-
-        Console.WriteLine("Chatroom Closing");*/
-
     }
 
     static async Task RunAsync()
     {
-        var view = new NameForm();
+        var view = new LoginForm();
         var user = new UserModel();
         NetworkService networkService = new NetworkService();
         //await networkService.ConnectToServer();

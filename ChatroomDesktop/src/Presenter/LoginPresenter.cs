@@ -7,12 +7,12 @@ namespace ChatroomDesktop.Presenter;
 
 public class LoginPresenter
 {
-    private readonly INameView _view;
+    private readonly ILoginView _view;
     private readonly UserModel _user;
     private NetworkService _networkService;
     
 
-    public LoginPresenter(INameView view, UserModel user, NetworkService networkService)
+    public LoginPresenter(ILoginView view, UserModel user, NetworkService networkService)
     {
         _view = view;
         _user = user;
@@ -24,8 +24,16 @@ public class LoginPresenter
 
     private async void OnEnterClicked(object sender, EventArgs e)
     {
-        CheckCredentials(_view.Name, _view.Password);
-        await SuccessfulLogin(_view.Name);
+        bool result = await CheckCredentials(_view.Name, _view.Password);
+        if (result)
+        {
+            await SuccessfulLogin(_view.Name);    
+        }
+        else
+        {
+            _view.IncorrectLoginDetails();
+            MessageBox.Show("Wrong username or password!");
+        }
     }
 
     private async Task SuccessfulLogin(string name)
@@ -70,9 +78,9 @@ public class LoginPresenter
         }
     }
 
-    private void CheckCredentials(string username, string password)
+    private async Task<bool> CheckCredentials(string username, string password)
     {
-        
+        return await _networkService.CheckCredentials(username, password);
     }
 
     public async Task SetupConnection()

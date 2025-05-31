@@ -1,6 +1,6 @@
 namespace ChatroomDesktop.Views;
 
-public interface INameView
+public interface ILoginView
 {
     string Name { get; }
     string Password { get; }
@@ -8,4 +8,6 @@ public interface INameView
     void CloseForm();
     event EventHandler? SignUpClicked;
     event EventHandler? FormClosed;
+
+    void IncorrectLoginDetails();
 }

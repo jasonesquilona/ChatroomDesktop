@@ -42,10 +42,10 @@ public class ChatroomPresenter
         _view.AddNewUser(obj.UserList);
     }
 
-    private async void OnEnterClicked(object sender, EventArgs e)
+    private async void OnEnterClicked(object? sender, EventArgs e)
     {
         var message = _view.CurrentMessage;
-        _chatService.HandleUserInput(message);
         _view.ClearMessageBox();
+        _chatService.HandleUserInput(message);
     }
 }

@@ -9,12 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="src\Utilities\" />
       <Folder Include="Tests\" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="src\Views\NameForm.cs">
+      <Compile Update="src\Views\LoginForm.cs">
         <SubType>Form</SubType>
       </Compile>
       <Compile Update="src\Views\ChatroomForm.cs">

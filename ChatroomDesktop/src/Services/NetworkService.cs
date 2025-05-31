@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Utilities;
+using Microsoft.VisualBasic.CompilerServices;
 using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
@@ -55,13 +57,10 @@ public class NetworkService
         {
             await ConnectToServer();
         }
-        /*
-        var sslStream = new SslStream(_tcpClient.GetStream(), false,
-            (sender, cert, chain, errors) => true);
-        sslStream.AuthenticateAsClient("localhost");*/
         
         var stream = _tcpClient.GetStream();
-        var message = new Message{MessageType="SIGNUP", Sender = username, ChatMessage = password};
+        var hashedPassword = Util.SaltHashPassword(password);
+        var message = new Message{MessageType="SIGNUP", Sender = username, ChatMessage = hashedPassword};
         string jsonString = JsonSerializer.Serialize(message);
         var data = Encoding.UTF8.GetBytes(jsonString);
         
@@ -165,5 +164,30 @@ public class NetworkService
         }
 
         _isConnected = true;
+    }
+
+    public async Task<bool> CheckCredentials(String username, String password)
+    {
+        var stream = _tcpClient.GetStream();
+        var message = new Message{MessageType="LOGIN", Sender = username, ChatMessage = password};
+        string jsonString = JsonSerializer.Serialize(message);
+        var data = Encoding.UTF8.GetBytes(jsonString);
+        
+        await stream.WriteAsync(data, 0, data.Length);
+        
+        byte[] responseBuffer = new byte[1024]; // Adjust size as needed
+        Console.WriteLine($"Sent Login Request to Server!");
+        int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
+        string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        if (response.StartsWith("201"))
+        {
+            Console.WriteLine("Logged in!");
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("Invalid username or password!");
+            return false;
+        }
     }
 }
