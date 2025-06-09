@@ -25,6 +25,9 @@
       <Compile Update="src\Views\GroupChatsForm.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="src\Views\GroupCreationForm.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

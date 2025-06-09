@@ -1,6 +1,7 @@
+using ChatroomDesktop.Models;
+
 namespace ChatroomDesktop.Views;
 
-public class IGroupChatsForm
+public interface IGroupChatsView
 {
-    
 }

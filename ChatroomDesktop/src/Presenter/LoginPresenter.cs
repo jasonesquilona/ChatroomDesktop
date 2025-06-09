@@ -43,18 +43,19 @@ public class LoginPresenter
         await _networkService.SetUpConnection(_user.Username);
         
           
-        var mainView = new ChatroomForm();
+        //var mainView = new ChatroomForm();
+        var mainView = new GroupChatsForm();
         var chatModel = new ChatModel();
         ChatService chatService = new ChatService(_networkService);
-        var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
-        var recieve = chatService.ReadyQueue();
-        var listen=  _networkService.HandleIncomingMessages();
-        Console.WriteLine("Opening Chatroom...");
+        var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService);
+        //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
+        //var recieve = chatService.ReadyQueue();
+        //var listen=  _networkService.HandleIncomingMessages();
+        Console.WriteLine("Opening Group Chats Form...");
         mainView.Show();
         ((Form)_view).Hide();
 
-        await Task.WhenAll(listen, recieve);
-        _view.CloseForm();
+        ///await Task.WhenAll(listen, recieve);
     }
 
     private void OnSignUpClicked(object sender, EventArgs e)
