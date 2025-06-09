@@ -53,7 +53,7 @@ partial class LoginForm
         enterBtn.Location = new System.Drawing.Point(428, 259);
         enterBtn.Name = "enterBtn";
         enterBtn.Size = new System.Drawing.Size(75, 23);
-        enterBtn.TabIndex = 1;
+        enterBtn.TabIndex = 3;
         enterBtn.Text = "Enter";
         enterBtn.UseVisualStyleBackColor = true;
         enterBtn.Click += enterBtn_Click;
@@ -72,7 +72,7 @@ partial class LoginForm
         txtPassword.Location = new System.Drawing.Point(239, 202);
         txtPassword.Name = "txtPassword";
         txtPassword.Size = new System.Drawing.Size(264, 23);
-        txtPassword.TabIndex = 3;
+        txtPassword.TabIndex = 1;
         txtPassword.UseSystemPasswordChar = true;
         // 
         // label2

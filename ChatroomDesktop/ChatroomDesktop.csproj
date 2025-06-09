@@ -22,7 +22,7 @@
       <Compile Update="src\Views\SignupForm.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="src\Views\GroupListForm.cs">
+      <Compile Update="src\Views\GroupChatsForm.cs">
         <SubType>Form</SubType>
       </Compile>
     </ItemGroup>

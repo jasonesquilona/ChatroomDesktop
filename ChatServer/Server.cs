@@ -67,6 +67,7 @@ public class Server
                 else if (message?.MessageType == "LOGIN")
                 {
                     await HandleLogin(message, stream);
+                    _clients.Add(new Client(clientID, message.Sender));
                 }
                 else if (message?.MessageType == "CHAT")
                 {
@@ -80,7 +81,7 @@ public class Server
         }
         finally
         {
-            //(clientID.Client);
+            DisconnectClient(clientID);
         }
     }
 
@@ -187,15 +188,13 @@ public class Server
         }
     }
 
-    public void DisconnectUser(Client client)
+    public void DisconnectClient(TcpClient client)
     {
         lock (_clientsLock)
         {
-            _clients.Remove(client);
-            client.ClientID.Close();
+            _tcpClients.Remove(client);
+            client.Close();
         }
-        var messageObj = new Message {MessageType = "DISCONNECT",Sender  = client.Name, ChatMessage = $"{client.Name} has left", UserList = GetUserList()};
-        _ = BroadcastMessage(messageObj);
     }
 
     private string[] GetUserList()
