@@ -14,5 +14,22 @@ public class GroupChatListPresenter
         _view = view;
         _networkService = networkService;
         _chatService = chatService;
+        _view.CreateGroupClicked += OnCreateGroupClicked;
+    }
+
+    private void OnCreateGroupClicked(object? sender, EventArgs e)
+    {
+        string groupName = "";
+        GroupCreationForm formDialog= new GroupCreationForm();
+        if (formDialog.ShowDialog() == DialogResult.OK)
+        {
+            groupName = formDialog.GroupNameEntered;
+        }
+        else
+        {
+            
+        }
+        formDialog.Dispose();
+        Console.WriteLine(groupName);
     }
 }

@@ -1,10 +1,12 @@
 namespace ChatroomDesktop.Views;
 
 public partial class GroupChatsForm : Form, IGroupChatsView
-{
+{   
+    public event EventHandler? CreateGroupClicked;
     public GroupChatsForm()
     {
         InitializeComponent();
+        createGroupButton.Click += (s,e) => CreateGroupClicked?.Invoke(this, EventArgs.Empty);
     }
 
     private void button1_Click(object sender, EventArgs e)

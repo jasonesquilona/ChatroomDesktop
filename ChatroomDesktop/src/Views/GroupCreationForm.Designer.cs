@@ -39,14 +39,15 @@ partial class GroupCreationForm
         // 
         // groupNameTextbox
         // 
-        groupNameTextbox.Location = new System.Drawing.Point(235, 194);
+        groupNameTextbox.Location = new System.Drawing.Point(46, 127);
         groupNameTextbox.Name = "groupNameTextbox";
         groupNameTextbox.Size = new System.Drawing.Size(300, 23);
         groupNameTextbox.TabIndex = 0;
+        groupNameTextbox.TextChanged += groupNameTextbox_TextChanged;
         // 
         // label1
         // 
-        label1.Location = new System.Drawing.Point(235, 168);
+        label1.Location = new System.Drawing.Point(46, 101);
         label1.Name = "label1";
         label1.Size = new System.Drawing.Size(117, 23);
         label1.TabIndex = 1;
@@ -54,27 +55,29 @@ partial class GroupCreationForm
         // 
         // enterButton
         // 
-        enterButton.Location = new System.Drawing.Point(235, 223);
+        enterButton.Location = new System.Drawing.Point(46, 156);
         enterButton.Name = "enterButton";
         enterButton.Size = new System.Drawing.Size(84, 24);
         enterButton.TabIndex = 2;
         enterButton.Text = "Enter";
         enterButton.UseVisualStyleBackColor = true;
+        enterButton.Click += enterButton_Click;
         // 
         // Cancel
         // 
-        Cancel.Location = new System.Drawing.Point(460, 224);
+        Cancel.Location = new System.Drawing.Point(271, 156);
         Cancel.Name = "Cancel";
         Cancel.Size = new System.Drawing.Size(75, 23);
         Cancel.TabIndex = 3;
         Cancel.Text = "Cancel";
         Cancel.UseVisualStyleBackColor = true;
+        Cancel.Click += Cancel_Click;
         // 
         // GroupCreationForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        ClientSize = new System.Drawing.Size(800, 450);
+        ClientSize = new System.Drawing.Size(403, 270);
         Controls.Add(Cancel);
         Controls.Add(enterButton);
         Controls.Add(label1);
