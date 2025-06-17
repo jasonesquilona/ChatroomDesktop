@@ -43,7 +43,7 @@ public class NetworkService
         }
         
         var stream = _tcpClient.GetStream();
-        var message = new Message{MessageType="JOIN", Sender = name};
+        var message = new ChatMessage{MessageType="CHAT", ChatType = "JOIN", Sender = name};
         string jsonString = JsonSerializer.Serialize(message);
         var data = Encoding.UTF8.GetBytes(jsonString);
         await stream.WriteAsync(data, 0, data.Length);
@@ -60,7 +60,7 @@ public class NetworkService
         
         var stream = _tcpClient.GetStream();
         var hashedPassword = Util.SaltHashPassword(password);
-        var message = new Message{MessageType="SIGNUP", Sender = username, ChatMessage = hashedPassword};
+        var message = new ChatMessage{MessageType="SIGNUP", Sender = username, chatMessage = hashedPassword};
         string jsonString = JsonSerializer.Serialize(message);
         var data = Encoding.UTF8.GetBytes(jsonString);
         
@@ -97,7 +97,6 @@ public class NetworkService
                     var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     Message message = JsonSerializer.Deserialize<Message>(jsonString);
                     OnMessageReceived?.Invoke(message);
-                    Console.WriteLine($"Received {message.ChatMessage}");
                 }
             }
         }
@@ -125,7 +124,7 @@ public class NetworkService
 
     public async Task SendMessage(string message)
     {
-       var messageObj = new Message{MessageType="CHAT", Sender = _userModel.Username, ChatMessage = message};
+       var messageObj = new ChatMessage{MessageType="CHAT", ChatType = "CHAT", Sender = _userModel.Username, chatMessage = message};
        string jsonString = JsonSerializer.Serialize(messageObj);
        var data = Encoding.UTF8.GetBytes(jsonString);
        var stream = _tcpClient.GetStream();
@@ -169,8 +168,9 @@ public class NetworkService
     public async Task<bool> CheckCredentials(String username, String password)
     {
         var stream = _tcpClient.GetStream();
-        var message = new Message{MessageType="LOGIN", Sender = username, ChatMessage = password};
+        var message = new LoginMessage{MessageType="LOGIN", Username = username, Password= password};
         string jsonString = JsonSerializer.Serialize(message);
+        Console.WriteLine("Logging in.." + jsonString);
         var data = Encoding.UTF8.GetBytes(jsonString);
         
         await stream.WriteAsync(data, 0, data.Length);

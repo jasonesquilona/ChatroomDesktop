@@ -1,5 +1,7 @@
+using ChatroomDesktop.Models;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Views;
+using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Presenter;
 
@@ -31,5 +33,12 @@ public class GroupChatListPresenter
         }
         formDialog.Dispose();
         Console.WriteLine(groupName);
+    }
+
+    private void SendCreateGroupData(string groupName)
+    {
+        var message = new CreateGroupMessage();
+        message.MessageType = "CREATEGROUP";
+        message.groupName = groupName;
     }
 }

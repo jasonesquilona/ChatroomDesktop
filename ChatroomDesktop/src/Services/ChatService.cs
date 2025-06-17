@@ -1,3 +1,4 @@
+using ChatroomDesktop.Models;
 using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
@@ -13,9 +14,9 @@ public class ChatService
     
     private CancellationTokenSource _cts;
     
-    public event Action<Message> OnNewMessage;
-    
-    public event Action<Message> OnNewUser;
+    public event Action<ChatMessage> OnNewMessage;
+     
+    public event Action<ChatMessage> OnNewUser;
     public ChatService(NetworkService networkService)
     {
         this._networkService = networkService;
@@ -38,19 +39,22 @@ public class ChatService
 
     private void ReceiveMessage(Message message)
     {
-        if (message.MessageType == "CHAT")
+        if (message is ChatMessage chatMsg)
         {
-            OnNewMessage?.Invoke(message);
-        }
-        else if (message.MessageType == "JOIN")
-        {
-            OnNewUser?.Invoke(message);
-            OnNewMessage?.Invoke(message);
-        }
-        else if (message.MessageType == "DISCONNECT")
-        {
-            OnNewUser?.Invoke(message);
-            OnNewMessage?.Invoke(message);
+            if (chatMsg.ChatType == "CHAT")
+            {
+                OnNewMessage?.Invoke(chatMsg);
+            }
+            else if (chatMsg.ChatType == "JOIN")
+            {
+                OnNewUser?.Invoke(chatMsg);
+                OnNewMessage?.Invoke(chatMsg);
+            }
+            else if (chatMsg.ChatType == "DISCONNECT")
+            {
+                OnNewUser?.Invoke(chatMsg);
+                OnNewMessage?.Invoke(chatMsg);
+            } 
         }
     }
 

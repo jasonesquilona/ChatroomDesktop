@@ -32,12 +32,12 @@ public class ChatroomPresenter
         _chatService.CloseConnection();
     }
 
-    private async void HandleNewMessage(Message obj)
+    private async void HandleNewMessage(ChatMessage obj)
     {
-        _view.AddMessage(obj.ChatMessage);
+        _view.AddMessage(obj.chatMessage);
     }
 
-    private async void HandleNewUser(Message obj)
+    private async void HandleNewUser(ChatMessage obj)
     {
         _view.AddNewUser(obj.UserList);
     }

@@ -55,23 +55,30 @@ public class Server
                 }
                 var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Message received: {jsonString}");
-                Message? message = JsonSerializer.Deserialize<Message>(jsonString);
-                if (message?.MessageType == "SIGNUP")
+                JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
+                Message? message = JsonSerializer.Deserialize<Message>(jsonString,options);
+                if (message is SignupMessage signupMsg)
                 {
-                    await HandleSignup(message, stream);
+                    await HandleSignup(signupMsg, stream);
                 }
-                else if (message?.MessageType == "JOIN")
+                else if (message is ChatMessage chatMsg)
                 {
-                    client = await HandleJoinClient(clientID, message);
+                    if (chatMsg.MessageType == "JOIN")
+                    {
+                        client = await HandleJoinClient(clientID, chatMsg);
+                    }
+                    else if (chatMsg.MessageType == "CHAT")
+                    {
+                        await HandleChatMessage(client, chatMsg);
+                    }
+                    else if (chatMsg.MessageType == "DISCONNECT")
+                    {
+                    }
                 }
-                else if (message?.MessageType == "LOGIN")
+                else if (message is LoginMessage loginMsg)
                 {
-                    await HandleLogin(message, stream);
-                    _clients.Add(new Client(clientID, message.Sender));
-                }
-                else if (message?.MessageType == "CHAT")
-                {
-                    await HandleChatMessage(client, message);
+                    await HandleLogin(loginMsg, stream);
+                    _clients.Add(new Client(clientID, loginMsg.Username));
                 }
             }
         }
@@ -85,15 +92,15 @@ public class Server
         }
     }
 
-    private async Task HandleChatMessage(Client? client, Message message)
+    private async Task HandleChatMessage(Client? client, ChatMessage message)
     {
         if(client != null){
-            var messageObj = new Message {MessageType = "CHAT",Sender  = message.Sender, ChatMessage = message.ChatMessage, UserList = GetUserList()};
+            var messageObj = new ChatMessage {MessageType = "CHAT", ChatType = "CHAT", Sender = message.Sender, chatMessage = message.chatMessage, UserList = GetUserList()};
             await BroadcastMessage(messageObj);
         }
     }
 
-    private async Task HandleLogin(Message message, NetworkStream stream)
+    private async Task HandleLogin(LoginMessage message, NetworkStream stream)
     {
         var sql = "SELECT password FROM ChatSchema.Users WHERE username = @username";
         string response = "";
@@ -106,7 +113,7 @@ public class Server
         else
         {
             Console.WriteLine("Checking password");
-            bool isCorrect = Util.CheckPassword(message.ChatMessage,password);
+            bool isCorrect = Util.CheckPassword(message.Password,password);
             if (isCorrect)
             {
                 response = "201 User Login";
@@ -121,7 +128,7 @@ public class Server
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
     }
 
-    private async Task<Client> HandleJoinClient(TcpClient clientID, Message message)
+    private async Task<Client> HandleJoinClient(TcpClient clientID, ChatMessage message)
     {
         var name = message.Sender;
         var client = new Client(clientID, name);
@@ -142,7 +149,7 @@ public class Server
         return client;
     }
 
-    private async Task HandleSignup(Message message, NetworkStream stream)
+    private async Task HandleSignup(SignupMessage message, NetworkStream stream)
     {
         Console.WriteLine("Sign up request received");
 
@@ -162,16 +169,16 @@ public class Server
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
     }
 
-    private async Task BroadcastMessage(Message? message)
+    private async Task BroadcastMessage(ChatMessage? message)
     {
-        if (message.MessageType == "JOIN")
+        if (message.ChatType == "JOIN")
         {
-            message.ChatMessage = $"{message.Sender} has joined!";
+            message.chatMessage = $"{message.Sender} has joined!";
             
         }
         else if (message.MessageType == "CHAT")
         {
-            message.ChatMessage = $"{message.Sender}: {message.ChatMessage}";
+            message.chatMessage = $"{message.Sender}: {message.chatMessage}";
         }
         string jsonString = JsonSerializer.Serialize(message);
         byte[] messageBytes = Encoding.UTF8.GetBytes(jsonString);
@@ -182,7 +189,7 @@ public class Server
                 var clientId = client.ClientID;
                 var name = client.Name;
                 NetworkStream stream = clientId.GetStream();
-                Console.WriteLine($"Sending message: {message.ChatMessage} to {clientId.Client.RemoteEndPoint} | {name}");
+                Console.WriteLine($"Sending message: {message.chatMessage} to {clientId.Client.RemoteEndPoint} | {name}");
                 stream.Write(messageBytes, 0, messageBytes.Length);
             }
         }
@@ -208,10 +215,10 @@ public class Server
         return currClients.ToArray();
     }
 
-    private bool SendSQLSignup(string sql, Message? message)
+    private bool SendSQLSignup(string sql, SignupMessage? message)
     {
-        var name = message.Sender;
-        var password = message.ChatMessage;
+        var name = message.Username;
+        var password = message.Password;
         string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
         int rowsAffected;
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
@@ -248,9 +255,9 @@ public class Server
         }
     }
 
-    private (string, bool) SendSQLLogin(string sql, Message? message)
+    private (string, bool) SendSQLLogin(string sql, LoginMessage? message)
     {
-        var name = message.Sender;
+        var name = message.Username;
         string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
         object result;
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
