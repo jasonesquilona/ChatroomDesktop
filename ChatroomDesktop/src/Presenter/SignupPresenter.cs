@@ -1,6 +1,7 @@
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Views;
+using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Presenter;
 
@@ -21,9 +22,16 @@ public class SignupPresenter
 
      private async void OnEnterClicked(object? sender, EventArgs e)
      {
-          await _networkService.SendSignupData(_view.Username, _view.Password);
-          ((Form)_view).Hide();
-          FormClosed?.Invoke(this, new SignUpEventArgs(isSignupSuccess: true, _view.Username));
+          var result = await _networkService.SendSignupData(_view.Username, _view.Password);
+          if (result)
+          {
+               ((Form)_view).Hide();
+               FormClosed?.Invoke(this, new SignUpEventArgs(isSignupSuccess: true, _view.Username));
+          }
+          else
+          {
+               MessageBox.Show("Invalid username. Pick another one");
+          }
      }
 
      private void OnCancelClicked(object? sender, EventArgs e)

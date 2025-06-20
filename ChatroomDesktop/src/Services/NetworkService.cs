@@ -43,7 +43,7 @@ public class NetworkService
         }
         
         var stream = _tcpClient.GetStream();
-        var message = new ChatMessage{MessageType="CHAT", ChatType = "JOIN", Sender = name};
+        var message = new ConnectMessage{MessageType="CONNECT", User = name};
         string jsonString = JsonSerializer.Serialize(message);
         var data = Encoding.UTF8.GetBytes(jsonString);
         await stream.WriteAsync(data, 0, data.Length);
@@ -51,7 +51,7 @@ public class NetworkService
         _userModel.Username = name;
     }
 
-    public async Task SendSignupData(string username, string password)
+    public async Task<bool> SendSignupData(string username, string password)
     {
         if (!this._isConnected)
         {
@@ -60,7 +60,7 @@ public class NetworkService
         
         var stream = _tcpClient.GetStream();
         var hashedPassword = Util.SaltHashPassword(password);
-        var message = new ChatMessage{MessageType="SIGNUP", Sender = username, chatMessage = hashedPassword};
+        var message = new SignupMessage{MessageType="SIGNUP", Username = username, Password = hashedPassword};
         string jsonString = JsonSerializer.Serialize(message);
         var data = Encoding.UTF8.GetBytes(jsonString);
         
@@ -74,10 +74,11 @@ public class NetworkService
         if (response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
+            return true;
         }
         else
         {
-            
+            return false;
         }
     }
 
@@ -139,6 +140,11 @@ public class NetworkService
        {
            _sendLock.Release();
        }
+    }
+
+    public async Task SendGroupCreationRequest(CreateGroupMessage message)
+    {
+        
     }
 
     public void CloseConnection()

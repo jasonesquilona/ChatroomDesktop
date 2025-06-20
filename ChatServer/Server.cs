@@ -4,9 +4,6 @@ using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Utilities;
-using Microsoft.Data.SqlClient;
-using Microsoft.VisualBasic.CompilerServices;
-using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;
 
 namespace ChatServer;
 
@@ -65,7 +62,7 @@ public class Server
                 {
                     if (chatMsg.MessageType == "JOIN")
                     {
-                        client = await HandleJoinClient(clientID, chatMsg);
+                        //client = await HandleJoinClient(clientID, chatMsg);
                     }
                     else if (chatMsg.MessageType == "CHAT")
                     {
@@ -79,6 +76,11 @@ public class Server
                 {
                     await HandleLogin(loginMsg, stream);
                     _clients.Add(new Client(clientID, loginMsg.Username));
+                }
+                else if (message is ConnectMessage connectMsg)
+                {
+                    client = await HandleConnectClient(clientID, connectMsg);
+                    _clients.Add(client);
                 }
             }
         }
@@ -104,7 +106,7 @@ public class Server
     {
         var sql = "SELECT password FROM ChatSchema.Users WHERE username = @username";
         string response = "";
-        (string password, bool success) = SendSQLLogin(sql, message);
+        (string password, bool success) = SQLOperations.SendSQLLogin(sql, message);
         if (!success)
         {
             Console.WriteLine("Login failed");
@@ -128,34 +130,25 @@ public class Server
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
     }
 
-    private async Task<Client> HandleJoinClient(TcpClient clientID, ChatMessage message)
+    private async Task<Client> HandleConnectClient(TcpClient clientID, ConnectMessage message)
     {
-        var name = message.Sender;
+        var name = message.User;
         var client = new Client(clientID, name);
         lock (_clientsLock)
         {
             _clients.Add(client);
             Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
-            //_ = HandleClientAsync(client);
-            List<string> currClients = new List<string>();
-            foreach (var clientName in _clients)
-            {
-                currClients.Add(clientName.Name);
-            }
-
-            message.UserList = currClients.ToArray();
         }
-        await BroadcastMessage(message);
         return client;
     }
-
+    
     private async Task HandleSignup(SignupMessage message, NetworkStream stream)
     {
         Console.WriteLine("Sign up request received");
 
         var sql = "INSERT INTO ChatSchema.Users (Username, Password) VALUES  (@username, @password)";
         string response = "";
-        if (!SendSQLSignup(sql, message))
+        if (!SQLOperations.SendSQLSignup(sql, message))
         {
             Console.WriteLine("Sign up failed");
             response = "401 Unauthorized";
@@ -169,6 +162,7 @@ public class Server
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
     }
 
+    //Broadcast everyone to currently connected Chat
     private async Task BroadcastMessage(ChatMessage? message)
     {
         if (message.ChatType == "JOIN")
@@ -200,6 +194,8 @@ public class Server
         lock (_clientsLock)
         {
             _tcpClients.Remove(client);
+            _clients.RemoveAll(p => p.ClientID == client);
+            Console.WriteLine($"Client disconnected from {client.Client.RemoteEndPoint}");
             client.Close();
         }
     }
@@ -214,82 +210,5 @@ public class Server
         
         return currClients.ToArray();
     }
-
-    private bool SendSQLSignup(string sql, SignupMessage? message)
-    {
-        var name = message.Username;
-        var password = message.Password;
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
-        int rowsAffected;
-        using (SqlConnection sqlConnection = new SqlConnection(connectionString))
-        {
-            Console.WriteLine($"Sending New User to Database");
-            try
-            {
-                sqlConnection.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine($"Connected to Database");
-            using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
-            {
-                Console.WriteLine("New Command");
-                sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
-                Console.WriteLine("Executing Command");
-                rowsAffected = sqlCommand.ExecuteNonQuery();
-            }
-        }
-        Console.WriteLine($"rows affected: {rowsAffected}");
-        if (rowsAffected <= 0)
-        {
-            Console.WriteLine("No rows affected");
-            return false;
-        }
-        else
-        {
-            
-            return true;
-        }
-    }
-
-    private (string, bool) SendSQLLogin(string sql, LoginMessage? message)
-    {
-        var name = message.Username;
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
-        object result;
-        using (SqlConnection sqlConnection = new SqlConnection(connectionString))
-        {
-            Console.WriteLine($"Sending New User to Database");
-            try
-            {
-                sqlConnection.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine($"Connected to Database");
-            using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
-            {
-                Console.WriteLine("New Command");
-                sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                Console.WriteLine("Executing Command");
-                result = sqlCommand.ExecuteScalar();
-            }
-        }
-        if (result == null)
-        {
-            Console.WriteLine("No rows affected");
-            return ("", false);
-        }
-        else
-        {
-            string retrievedPassword = (string)result;
-            Console.WriteLine(retrievedPassword);
-            return (retrievedPassword, true);
-        }
-    }
+    
 }

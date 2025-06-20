@@ -26,6 +26,7 @@ public class GroupChatListPresenter
         if (formDialog.ShowDialog() == DialogResult.OK)
         {
             groupName = formDialog.GroupNameEntered;
+            SendCreateGroupData(groupName);
         }
         else
         {
@@ -35,10 +36,13 @@ public class GroupChatListPresenter
         Console.WriteLine(groupName);
     }
 
-    private void SendCreateGroupData(string groupName)
+    private async void SendCreateGroupData(string groupName)
     {
         var message = new CreateGroupMessage();
         message.MessageType = "CREATEGROUP";
         message.groupName = groupName;
+        
+        await _networkService.SendGroupCreationRequest(message);
+        
     }
 }
