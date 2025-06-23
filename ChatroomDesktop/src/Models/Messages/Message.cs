@@ -10,7 +10,6 @@ namespace ChatroomDesktop.Models;
 [JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
 public abstract class Message
 {
-    public string MessageType { get; set; }
 }
 
 public class LoginMessage : Message

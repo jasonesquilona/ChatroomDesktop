@@ -41,13 +41,6 @@ public class NetworkService
         {
             await ConnectToServer();
         }
-        
-        var stream = _tcpClient.GetStream();
-        var message = new ConnectMessage{MessageType="CONNECT", User = name};
-        string jsonString = JsonSerializer.Serialize(message);
-        var data = Encoding.UTF8.GetBytes(jsonString);
-        await stream.WriteAsync(data, 0, data.Length);
-        Console.WriteLine($"Connected to Server!");
         _userModel.Username = name;
     }
 
@@ -60,9 +53,8 @@ public class NetworkService
         
         var stream = _tcpClient.GetStream();
         var hashedPassword = Util.SaltHashPassword(password);
-        var message = new SignupMessage{MessageType="SIGNUP", Username = username, Password = hashedPassword};
-        string jsonString = JsonSerializer.Serialize(message);
-        var data = Encoding.UTF8.GetBytes(jsonString);
+        var message = new SignupMessage{Username = username, Password = hashedPassword};
+        var data = ConvertToJson(message);
         
         await stream.WriteAsync(data, 0, data.Length);
         
@@ -125,9 +117,8 @@ public class NetworkService
 
     public async Task SendMessage(string message)
     {
-       var messageObj = new ChatMessage{MessageType="CHAT", ChatType = "CHAT", Sender = _userModel.Username, chatMessage = message};
-       string jsonString = JsonSerializer.Serialize(messageObj);
-       var data = Encoding.UTF8.GetBytes(jsonString);
+       var messageObj = new ChatMessage{ChatType = "CHAT", Sender = _userModel.Username, chatMessage = message};
+       var data = ConvertToJson(messageObj);
        var stream = _tcpClient.GetStream();
        await _sendLock.WaitAsync();
        Console.WriteLine($"Sending message: {messageObj}");
@@ -142,9 +133,33 @@ public class NetworkService
        }
     }
 
-    public async Task SendGroupCreationRequest(CreateGroupMessage message)
+    private static byte[] ConvertToJson(Message messageObj)
     {
+        string jsonString = JsonSerializer.Serialize(messageObj);
+        Console.WriteLine(jsonString);
+        var data = Encoding.UTF8.GetBytes(jsonString);
+        return data;
+    }
+
+    public async Task<bool> SendGroupCreationRequest(CreateGroupMessage message)
+    {
+        var data = ConvertToJson(message);
+        var stream = _tcpClient.GetStream();
+        await _sendLock.WaitAsync();
+        await stream.WriteAsync(data, 0, data.Length);
+        byte[] responseBuffer = new byte[1024]; // Adjust size as needed
+        int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
         
+        string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        if (response.StartsWith("201"))
+        {
+            Console.WriteLine("Signed up!");
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public void CloseConnection()
@@ -174,10 +189,9 @@ public class NetworkService
     public async Task<bool> CheckCredentials(String username, String password)
     {
         var stream = _tcpClient.GetStream();
-        var message = new LoginMessage{MessageType="LOGIN", Username = username, Password= password};
-        string jsonString = JsonSerializer.Serialize(message);
-        Console.WriteLine("Logging in.." + jsonString);
-        var data = Encoding.UTF8.GetBytes(jsonString);
+        var message = new LoginMessage{Username = username, Password= password};
+        Console.WriteLine("Logging in..");
+        var data = ConvertToJson(message);
         
         await stream.WriteAsync(data, 0, data.Length);
         

@@ -11,7 +11,7 @@ public class Server
 {
     
     private TcpListener _tcpListener;
-    private List<Client> _clients = new List<Client>();
+    private List<Client> _loggedInClients = new List<Client>();
     private List<TcpClient> _tcpClients = new List<TcpClient>();
     private object _clientsLock = new object();
     
@@ -60,27 +60,31 @@ public class Server
                 }
                 else if (message is ChatMessage chatMsg)
                 {
-                    if (chatMsg.MessageType == "JOIN")
+                    if (chatMsg.ChatType == "JOIN")
                     {
                         //client = await HandleJoinClient(clientID, chatMsg);
                     }
-                    else if (chatMsg.MessageType == "CHAT")
+                    else if (chatMsg.ChatType == "CHAT")
                     {
                         await HandleChatMessage(client, chatMsg);
                     }
-                    else if (chatMsg.MessageType == "DISCONNECT")
+                    else if (chatMsg.ChatType  == "DISCONNECT")
                     {
                     }
                 }
                 else if (message is LoginMessage loginMsg)
                 {
-                    await HandleLogin(loginMsg, stream);
-                    _clients.Add(new Client(clientID, loginMsg.Username));
+                    bool result = await HandleLogin(loginMsg, stream);
+                    if (result == true)
+                    {
+                        client = new Client(clientID, loginMsg.Username);
+                        _loggedInClients.Add(client);
+                        Console.WriteLine($"Client logged in: {client.Name}");
+                    }
                 }
-                else if (message is ConnectMessage connectMsg)
+                else if (message is CreateGroupMessage createGroupMsg)
                 {
-                    client = await HandleConnectClient(clientID, connectMsg);
-                    _clients.Add(client);
+                    await HandleCreateGroup(createGroupMsg);
                 }
             }
         }
@@ -94,15 +98,20 @@ public class Server
         }
     }
 
+    private async Task HandleCreateGroup(CreateGroupMessage createGroupMsg)
+    {
+        
+    }
+
     private async Task HandleChatMessage(Client? client, ChatMessage message)
     {
         if(client != null){
-            var messageObj = new ChatMessage {MessageType = "CHAT", ChatType = "CHAT", Sender = message.Sender, chatMessage = message.chatMessage, UserList = GetUserList()};
+            var messageObj = new ChatMessage {ChatType = "CHAT", Sender = message.Sender, chatMessage = message.chatMessage, UserList = GetUserList()};
             await BroadcastMessage(messageObj);
         }
     }
 
-    private async Task HandleLogin(LoginMessage message, NetworkStream stream)
+    private async Task<bool> HandleLogin(LoginMessage message, NetworkStream stream)
     {
         var sql = "SELECT password FROM ChatSchema.Users WHERE username = @username";
         string response = "";
@@ -114,7 +123,6 @@ public class Server
         }
         else
         {
-            Console.WriteLine("Checking password");
             bool isCorrect = Util.CheckPassword(message.Password,password);
             if (isCorrect)
             {
@@ -128,6 +136,7 @@ public class Server
                     
         byte[] messageBytes = Encoding.UTF8.GetBytes(response);
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+        return success;
     }
 
     private async Task<Client> HandleConnectClient(TcpClient clientID, ConnectMessage message)
@@ -136,7 +145,7 @@ public class Server
         var client = new Client(clientID, name);
         lock (_clientsLock)
         {
-            _clients.Add(client);
+            _loggedInClients.Add(client);
             Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
         }
         return client;
@@ -170,7 +179,7 @@ public class Server
             message.chatMessage = $"{message.Sender} has joined!";
             
         }
-        else if (message.MessageType == "CHAT")
+        else if (message.ChatType == "CHAT")
         {
             message.chatMessage = $"{message.Sender}: {message.chatMessage}";
         }
@@ -178,7 +187,7 @@ public class Server
         byte[] messageBytes = Encoding.UTF8.GetBytes(jsonString);
         lock (_clientsLock)
         {
-            foreach (var client in _clients)
+            foreach (var client in _loggedInClients)
             {
                 var clientId = client.ClientID;
                 var name = client.Name;
@@ -194,7 +203,7 @@ public class Server
         lock (_clientsLock)
         {
             _tcpClients.Remove(client);
-            _clients.RemoveAll(p => p.ClientID == client);
+            _loggedInClients.RemoveAll(p => p.ClientID == client);
             Console.WriteLine($"Client disconnected from {client.Client.RemoteEndPoint}");
             client.Close();
         }
@@ -203,7 +212,7 @@ public class Server
     private string[] GetUserList()
     {
         List<string> currClients = new List<string>();
-        foreach (var clientName in _clients)
+        foreach (var clientName in _loggedInClients)
         {
             currClients.Add(clientName.Name);
         }

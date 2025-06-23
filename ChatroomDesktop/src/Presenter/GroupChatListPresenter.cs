@@ -39,7 +39,6 @@ public class GroupChatListPresenter
     private async void SendCreateGroupData(string groupName)
     {
         var message = new CreateGroupMessage();
-        message.MessageType = "CREATEGROUP";
         message.groupName = groupName;
         
         await _networkService.SendGroupCreationRequest(message);

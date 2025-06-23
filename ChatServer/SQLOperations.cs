@@ -52,7 +52,7 @@ public class SQLOperations
         object result;
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
         {
-            Console.WriteLine($"Sending New User to Database");
+            Console.WriteLine($"Checking Login Request to Server");
             try
             {
                 sqlConnection.Open();
@@ -78,7 +78,6 @@ public class SQLOperations
         else
         {
             string retrievedPassword = (string)result;
-            Console.WriteLine(retrievedPassword);
             return (retrievedPassword, true);
         }
     }
