@@ -81,4 +81,9 @@ public class SQLOperations
             return (retrievedPassword, true);
         }
     }
+
+    public static void SendNewGroup(string groupName, string groupCode)
+    {
+        
+    }
 }

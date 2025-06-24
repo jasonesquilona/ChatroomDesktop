@@ -68,9 +68,6 @@ public class Server
                     {
                         await HandleChatMessage(client, chatMsg);
                     }
-                    else if (chatMsg.ChatType  == "DISCONNECT")
-                    {
-                    }
                 }
                 else if (message is LoginMessage loginMsg)
                 {
@@ -100,7 +97,8 @@ public class Server
 
     private async Task HandleCreateGroup(CreateGroupMessage createGroupMsg)
     {
-        
+        var groupName = createGroupMsg.groupName;
+        var groupCode = Util.GenrateRandomString();
     }
 
     private async Task HandleChatMessage(Client? client, ChatMessage message)

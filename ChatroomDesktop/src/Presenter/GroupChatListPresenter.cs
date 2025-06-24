@@ -19,24 +19,24 @@ public class GroupChatListPresenter
         _view.CreateGroupClicked += OnCreateGroupClicked;
     }
 
-    private void OnCreateGroupClicked(object? sender, EventArgs e)
+    private async void OnCreateGroupClicked(object? sender, EventArgs e)
     {
         string groupName = "";
         GroupCreationForm formDialog= new GroupCreationForm();
         if (formDialog.ShowDialog() == DialogResult.OK)
         {
             groupName = formDialog.GroupNameEntered;
-            SendCreateGroupData(groupName);
+            await SendCreateGroupData(groupName);
+            Console.WriteLine(groupName);
         }
         else
         {
             
         }
         formDialog.Dispose();
-        Console.WriteLine(groupName);
     }
 
-    private async void SendCreateGroupData(string groupName)
+    private async Task SendCreateGroupData(string groupName)
     {
         var message = new CreateGroupMessage();
         message.groupName = groupName;
