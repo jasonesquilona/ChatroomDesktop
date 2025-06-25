@@ -75,13 +75,15 @@ public class Server
                     if (result == true)
                     {
                         client = new Client(clientID, loginMsg.Username);
-                        _loggedInClients.Add(client);
+                        lock(_clientsLock){
+                            _loggedInClients.Add(client);
+                        }
                         Console.WriteLine($"Client logged in: {client.Name}");
                     }
                 }
                 else if (message is CreateGroupMessage createGroupMsg)
                 {
-                    await HandleCreateGroup(createGroupMsg);
+                    await HandleCreateGroup(createGroupMsg, stream);
                 }
             }
         }
@@ -94,13 +96,7 @@ public class Server
             DisconnectClient(clientID);
         }
     }
-
-    private async Task HandleCreateGroup(CreateGroupMessage createGroupMsg)
-    {
-        var groupName = createGroupMsg.groupName;
-        var groupCode = Util.GenrateRandomString();
-    }
-
+    
     private async Task HandleChatMessage(Client? client, ChatMessage message)
     {
         if(client != null){
@@ -168,6 +164,36 @@ public class Server
         byte[] messageBytes = Encoding.UTF8.GetBytes(response);
         await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
     }
+    
+    private async Task<bool> HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)
+    {
+        var groupName = createGroupMsg.groupName;
+        bool response = false;
+        var sql = "INSERT INTO ChatSchema.Groups (Name, Code)  VALUES (@Name, @Code)";
+        for (int i = 0; i < 5; i++)
+        {
+            var groupCode = Util.GenrateRandomString();
+            response = SQLOperations.SendNewGroup(sql, groupName, groupCode);
+            if (response)
+            {
+                break;
+            }
+        }
+
+        var responseMessage = "";
+        if (response)
+        {
+            
+        }
+        else
+        {
+            responseMessage = "400 Bad Request";
+        }
+        byte[] messageBytes = Encoding.UTF8.GetBytes(responseMessage);
+        await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+        return response;
+    }
+
 
     //Broadcast everyone to currently connected Chat
     private async Task BroadcastMessage(ChatMessage? message)

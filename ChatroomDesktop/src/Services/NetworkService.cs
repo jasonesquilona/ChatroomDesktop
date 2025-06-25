@@ -153,7 +153,7 @@ public class NetworkService
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         if (response.StartsWith("201"))
         {
-            Console.WriteLine("Signed up!");
+            Console.WriteLine("Group Created");
             return true;
         }
         else

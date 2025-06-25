@@ -61,15 +61,20 @@ public class SQLOperations
             {
                 Console.WriteLine(ex.Message);
             }
-            Console.WriteLine($"Connected to Database");
-            using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+            finally
             {
-                Console.WriteLine("New Command");
-                sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                Console.WriteLine("Executing Command");
-                result = sqlCommand.ExecuteScalar();
+                Console.WriteLine($"Connected to Database");
+                using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                {
+                    Console.WriteLine("New Command");
+                    sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
+                    Console.WriteLine("Executing Command");
+                    result = sqlCommand.ExecuteScalar();
+                }
             }
         }
+        
+        
         if (result == null)
         {
             Console.WriteLine("No rows affected");
@@ -82,8 +87,51 @@ public class SQLOperations
         }
     }
 
-    public static void SendNewGroup(string groupName, string groupCode)
+    public static bool SendNewGroup(String sql, string groupName, string groupCode)
     {
+        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
+        object result;
+        try
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                Console.WriteLine($"Sending New Group to Database");
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    throw new Exception("Failed to send New Group to Database");
+                }
+                finally
+                {
+                    Console.WriteLine($"Connected to Database");
+                    using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                    {
+                        Console.WriteLine("New Command");
+                        sqlCommand.Parameters.Add("@Name", System.Data.SqlDbType.VarChar).Value = groupName;
+                        sqlCommand.Parameters.Add("@Code", System.Data.SqlDbType.VarChar).Value = groupCode;
+                        Console.WriteLine("Executing Command");
+                        result = sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to send New Group to Database");
+            Console.WriteLine($"Error: {ex.Message}");
+            return false;
+        }
         
+        if (result == null)
+        {
+            Console.WriteLine("No rows affected");
+            return false;
+        }
+        
+        return true;
     }
 }

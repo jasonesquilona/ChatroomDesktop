@@ -8,6 +8,7 @@ namespace ChatroomDesktop.Models;
 [JsonDerivedType(typeof(CreateGroupMessage), "CREATEGROUP")]
 [JsonDerivedType(typeof(SignupMessage), "SIGNUP")]
 [JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
+[JsonDerivedType(typeof(ResponseMessage), "RESPONSE")]
 public abstract class Message
 {
 }
@@ -41,4 +42,9 @@ public class ChatMessage : Message
 public class ConnectMessage : Message
 {
     public string User {get; set;}
+}
+
+public class ResponseMessage:Message
+{
+    public string Response {get; set;}
 }
