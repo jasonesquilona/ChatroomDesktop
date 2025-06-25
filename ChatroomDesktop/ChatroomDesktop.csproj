@@ -13,19 +13,19 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="src\Views\LoginForm.cs">
+      <Compile Update="src\Views\Forms\ChatroomForm.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="src\Views\ChatroomForm.cs">
+      <Compile Update="src\Views\Forms\GroupChatsForm.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="src\Views\SignupForm.cs">
+      <Compile Update="src\Views\Forms\GroupCreationForm.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="src\Views\GroupChatsForm.cs">
+      <Compile Update="src\Views\Forms\LoginForm.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="src\Views\GroupCreationForm.cs">
+      <Compile Update="src\Views\Forms\SignupForm.cs">
         <SubType>Form</SubType>
       </Compile>
     </ItemGroup>

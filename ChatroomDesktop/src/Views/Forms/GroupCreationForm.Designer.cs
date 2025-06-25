@@ -40,6 +40,7 @@ partial class GroupCreationForm
         // groupNameTextbox
         // 
         groupNameTextbox.Location = new System.Drawing.Point(46, 127);
+        groupNameTextbox.MaxLength = 30;
         groupNameTextbox.Name = "groupNameTextbox";
         groupNameTextbox.Size = new System.Drawing.Size(300, 23);
         groupNameTextbox.TabIndex = 0;

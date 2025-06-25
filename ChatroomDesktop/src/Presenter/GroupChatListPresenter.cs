@@ -17,6 +17,7 @@ public class GroupChatListPresenter
         _networkService = networkService;
         _chatService = chatService;
         _view.CreateGroupClicked += OnCreateGroupClicked;
+        _view.JoinGroupClicked += OnJoinGroupClicked;
     }
 
     private async void OnCreateGroupClicked(object? sender, EventArgs e)
@@ -28,6 +29,23 @@ public class GroupChatListPresenter
             groupName = formDialog.GroupNameEntered;
             await SendCreateGroupData(groupName);
             Console.WriteLine(groupName);
+        }
+        else
+        {
+            
+        }
+        formDialog.Dispose();
+    }
+
+    private async void OnJoinGroupClicked(object? sender, EventArgs e)
+    {
+        string groupCode = "";
+        GroupCreationForm formDialog= new GroupCreationForm();
+        formDialog.ChangeLabelText("Enter Group Code");
+        formDialog.ChangeTextLength(5);
+        if (formDialog.ShowDialog() == DialogResult.OK)
+        {
+            groupCode = formDialog.GroupNameEntered;
         }
         else
         {

@@ -37,6 +37,8 @@ public class ChatMessage : Message
     public string chatMessage {get; set;}
     
     public string[] UserList {get; set;}
+    
+    public string GroupCode {get; set;}
 }
 
 public class ConnectMessage : Message

@@ -40,4 +40,14 @@ public partial class GroupCreationForm : Form
         }
         this.Close();
     }
+
+    public void ChangeLabelText(string labelText)
+    {
+        label1.Text = labelText;
+    }
+
+    public void ChangeTextLength(int length)
+    {
+        groupNameTextbox.MaxLength = length;
+    }
 }

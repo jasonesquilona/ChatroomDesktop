@@ -33,7 +33,7 @@ partial class GroupChatsForm
     {
         createGroupButton = new System.Windows.Forms.Button();
         groupList = new System.Windows.Forms.Panel();
-        button1 = new System.Windows.Forms.Button();
+        JoinGroupButton = new System.Windows.Forms.Button();
         SuspendLayout();
         // 
         // createGroupButton
@@ -55,30 +55,30 @@ partial class GroupChatsForm
         groupList.Size = new System.Drawing.Size(517, 397);
         groupList.TabIndex = 1;
         // 
-        // button1
+        // JoinGroupButton
         // 
-        button1.Font = new System.Drawing.Font("Segoe UI", 12F);
-        button1.Location = new System.Drawing.Point(579, 305);
-        button1.Name = "button1";
-        button1.Size = new System.Drawing.Size(167, 51);
-        button1.TabIndex = 2;
-        button1.Text = "Join Group";
-        button1.UseVisualStyleBackColor = true;
-        button1.Click += button1_Click_1;
+        JoinGroupButton.Font = new System.Drawing.Font("Segoe UI", 12F);
+        JoinGroupButton.Location = new System.Drawing.Point(579, 305);
+        JoinGroupButton.Name = "JoinGroupButton";
+        JoinGroupButton.Size = new System.Drawing.Size(167, 51);
+        JoinGroupButton.TabIndex = 2;
+        JoinGroupButton.Text = "Join Group";
+        JoinGroupButton.UseVisualStyleBackColor = true;
+        JoinGroupButton.Click += button1_Click_1;
         // 
         // GroupChatsForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
-        Controls.Add(button1);
+        Controls.Add(JoinGroupButton);
         Controls.Add(groupList);
         Controls.Add(createGroupButton);
         Text = "GroupChatForm";
         ResumeLayout(false);
     }
 
-    private System.Windows.Forms.Button button1;
+    private System.Windows.Forms.Button JoinGroupButton;
 
     private System.Windows.Forms.Panel groupList;
 
