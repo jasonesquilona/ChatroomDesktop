@@ -30,10 +30,6 @@ public class GroupChatListPresenter
             await SendCreateGroupData(groupName);
             Console.WriteLine(groupName);
         }
-        else
-        {
-            
-        }
         formDialog.Dispose();
     }
 

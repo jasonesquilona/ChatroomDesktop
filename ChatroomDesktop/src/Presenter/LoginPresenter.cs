@@ -24,8 +24,8 @@ public class LoginPresenter
 
     private async void OnEnterClicked(object sender, EventArgs e)
     {
-        bool result = await CheckCredentials(_view.Name, _view.Password);
-        if (result)
+        ConnectMessage result = await CheckCredentials(_view.Name, _view.Password);
+        if (result != null)
         {
             await SuccessfulLogin(_view.Name);    
         }
@@ -79,7 +79,7 @@ public class LoginPresenter
         }
     }
 
-    private async Task<bool> CheckCredentials(string username, string password)
+    private async Task<ConnectMessage> CheckCredentials(string username, string password)
     {
         return await _networkService.CheckCredentials(username, password);
     }

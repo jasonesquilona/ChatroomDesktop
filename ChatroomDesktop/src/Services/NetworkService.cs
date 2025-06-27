@@ -186,7 +186,7 @@ public class NetworkService
         _isConnected = true;
     }
 
-    public async Task<bool> CheckCredentials(String username, String password)
+    public async Task<ConnectMessage> CheckCredentials(String username, String password)
     {
         var stream = _tcpClient.GetStream();
         var message = new LoginRequestMessage{Username = username, Password= password};
@@ -202,15 +202,15 @@ public class NetworkService
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
         var connectMessage = JsonSerializer.Deserialize<ConnectMessage>(response,options);
         
-        if (response.StartsWith("201"))
+        if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Logged in!");
-            return true;
+            return connectMessage;
         }
         else
         {
             Console.WriteLine("Invalid username or password!");
-            return false;
+            return null;
         }
     }
 }
