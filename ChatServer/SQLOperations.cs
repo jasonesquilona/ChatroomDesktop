@@ -1,37 +1,50 @@
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using ChatroomDesktop.Models;
+using SqlDataReader = Microsoft.Data.SqlClient.SqlDataReader;
 
 namespace ChatServer;
 
 public class SQLOperations
 {
-    public static bool SendSQLSignup(string sql, SignupMessage? message)
+    
+    private string connectionString =@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
+    private object SQLLock = new object();
+
+    public SQLOperations()
+    {
+        
+    }
+    public bool SendSQLSignup(string sql, SignupMessage? message)
     {
         var name = message.Username;
         var password = message.Password;
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
         int rowsAffected;
-        using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+        lock (SQLLock)
         {
-            Console.WriteLine($"Sending New User to Database");
-            try
+            using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
             {
-                sqlConnection.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine($"Connected to Database");
-            using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
-            {
-                Console.WriteLine("New Command");
-                sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
-                Console.WriteLine("Executing Command");
-                rowsAffected = sqlCommand.ExecuteNonQuery();
+                Console.WriteLine($"Sending New User to Database");
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                Console.WriteLine($"Connected to Database");
+                using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                {
+                    Console.WriteLine("New Command");
+                    sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
+                    sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
+                    Console.WriteLine("Executing Command");
+                    rowsAffected = sqlCommand.ExecuteNonQuery();
+                }
             }
         }
+
         Console.WriteLine($"rows affected: {rowsAffected}");
         if (rowsAffected <= 0)
         {
@@ -45,57 +58,18 @@ public class SQLOperations
         }
     }
 
-    public static (string, bool) SendSQLLogin(string sql, LoginMessage? message)
+    public async Task<(ConnectMessage, string, bool)> SendSQLLogin(string sql, LoginRequestMessage? message)
     {
         var name = message.Username;
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
-        object result;
+        string password = null;
+        bool success = true;
+        SqlDataReader result;
+        ConnectMessage connectMessage = new ConnectMessage();
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
         {
-            Console.WriteLine($"Checking Login Request to Server");
-            try
+            lock (SQLLock)
             {
-                sqlConnection.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                Console.WriteLine($"Connected to Database");
-                using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
-                {
-                    Console.WriteLine("New Command");
-                    sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                    Console.WriteLine("Executing Command");
-                    result = sqlCommand.ExecuteScalar();
-                }
-            }
-        }
-        
-        
-        if (result == null)
-        {
-            Console.WriteLine("No rows affected");
-            return ("", false);
-        }
-        else
-        {
-            string retrievedPassword = (string)result;
-            return (retrievedPassword, true);
-        }
-    }
-
-    public static bool SendNewGroup(String sql, string groupName, string groupCode)
-    {
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
-        object result;
-        try
-        {
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
-            {
-                Console.WriteLine($"Sending New Group to Database");
+                Console.WriteLine($"Checking Login Request to Server");
                 try
                 {
                     sqlConnection.Open();
@@ -103,7 +77,7 @@ public class SQLOperations
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    throw new Exception("Failed to send New Group to Database");
+                    success = false;
                 }
                 finally
                 {
@@ -111,21 +85,91 @@ public class SQLOperations
                     using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
                     {
                         Console.WriteLine("New Command");
-                        sqlCommand.Parameters.Add("@Name", System.Data.SqlDbType.VarChar).Value = groupName;
-                        sqlCommand.Parameters.Add("@Code", System.Data.SqlDbType.VarChar).Value = groupCode;
+                        sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
                         Console.WriteLine("Executing Command");
-                        result = sqlCommand.ExecuteNonQuery();
+                        result = sqlCommand.ExecuteReader();
                     }
                 }
             }
+
+            if (success)
+            {
+                int userId = 0;
+                List<GroupModel> groups = new List<GroupModel>();
+                while (await result.ReadAsync())
+                {
+                    if (userId == 0)
+                    {
+                        userId = result.GetInt32(0);
+                    }
+
+                    if (password == null)
+                    {
+                        password = result.GetString(1);
+                    }
+
+                    if (!result.IsDBNull(2))
+                    {
+                        var group = new GroupModel();
+                        group.GroupName = result.GetString(2);
+                        group.GroupId = result.GetString(3);
+                        groups.Add(group);
+                    }
+                }
+
+                connectMessage.Username = name;
+                connectMessage.Userid = userId;
+                connectMessage.GroupList = groups;
+            }
+
         }
-        catch (Exception ex)
+
+        return (connectMessage, password, success);
+
+    }
+
+    public bool SendNewGroup(String sql, string groupName, string groupCode)
+    {
+        object result;
+        lock (SQLLock)
         {
-            Console.WriteLine("Failed to send New Group to Database");
-            Console.WriteLine($"Error: {ex.Message}");
-            return false;
+            try
+            {
+
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                {
+                    Console.WriteLine($"Sending New Group to Database");
+                    try
+                    {
+                        sqlConnection.Open();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        throw new Exception("Failed to send New Group to Database");
+                    }
+                    finally
+                    {
+                        Console.WriteLine($"Connected to Database");
+                        using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                        {
+                            Console.WriteLine("New Command");
+                            sqlCommand.Parameters.Add("@Name", System.Data.SqlDbType.VarChar).Value = groupName;
+                            sqlCommand.Parameters.Add("@Code", System.Data.SqlDbType.VarChar).Value = groupCode;
+                            Console.WriteLine("Executing Command");
+                            result = sqlCommand.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to send New Group to Database");
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
         }
-        
+
         if (result == null)
         {
             Console.WriteLine("No rows affected");

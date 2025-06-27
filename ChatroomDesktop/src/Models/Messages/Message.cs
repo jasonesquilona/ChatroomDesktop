@@ -3,17 +3,16 @@ using System.Text.Json.Serialization;
 namespace ChatroomDesktop.Models;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "MessageType")]
-[JsonDerivedType(typeof(LoginMessage), "LOGIN")]
+[JsonDerivedType(typeof(LoginRequestMessage), "LOGIN")]
 [JsonDerivedType(typeof(ChatMessage), "CHAT")]
 [JsonDerivedType(typeof(CreateGroupMessage), "CREATEGROUP")]
 [JsonDerivedType(typeof(SignupMessage), "SIGNUP")]
 [JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
-[JsonDerivedType(typeof(ResponseMessage), "RESPONSE")]
 public abstract class Message
 {
 }
 
-public class LoginMessage : Message
+public class LoginRequestMessage : Message
 {
     public string Username { get; set; }
     public string Password { get; set; }
@@ -43,10 +42,14 @@ public class ChatMessage : Message
 
 public class ConnectMessage : Message
 {
-    public string User {get; set;}
-}
+    public string Response { get; set; }
+    public int Userid {get; set;}
+    public string Username {get; set;}
+    public List<GroupModel> GroupList {get; set;}
+} 
 
-public class ResponseMessage:Message
+public class JoinGroupMessage : Message
 {
-    public string Response {get; set;}
+    public string GroupCode {get; set;}
+    public int UserId {get; set;}
 }

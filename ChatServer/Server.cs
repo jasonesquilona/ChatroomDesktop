@@ -11,15 +11,17 @@ public class Server
 {
     
     private TcpListener _tcpListener;
-    private List<Client> _loggedInClients = new List<Client>();
+    private List<Client?> _loggedInClients = new List<Client?>();
     private List<TcpClient> _tcpClients = new List<TcpClient>();
     private object _clientsLock = new object();
+    private SQLOperations _sqlOperations;
     
     private Lock _databasesLock = new Lock();
     public Server(IPAddress ip)
     {
         var ipEndPoint = new IPEndPoint(ip, 8080);
         _tcpListener = new TcpListener(ipEndPoint);
+        _sqlOperations = new SQLOperations();
     }
 
     public async Task ListenForClients()
@@ -28,18 +30,18 @@ public class Server
         Console.WriteLine("Listening for connections");
         while (true)
         {
-            var clientID = await _tcpListener.AcceptTcpClientAsync();
-            Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}");
-            _ = HandleNewConnection(clientID);
+            var clientId = await _tcpListener.AcceptTcpClientAsync();
+            Console.WriteLine($"Client connected: {clientId.Client.RemoteEndPoint}");
+            _ = HandleNewConnection(clientId);
         }
     }
     
-    private async Task HandleNewConnection(TcpClient clientID)
+    private async Task HandleNewConnection(TcpClient clientId)
     {
-        NetworkStream stream = clientID.GetStream();
+        var stream = clientId.GetStream();
         var buffer = new byte[1024];
-        Client client = null;
-        _tcpClients.Add(clientID);
+        Client? client = null;
+        _tcpClients.Add(clientId);
         try
         {
             while (true)
@@ -47,43 +49,44 @@ public class Server
                 var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 if (bytesRead == 0)
                 {
-                    Console.Write($"Client disconnected: {clientID.Client.RemoteEndPoint}");
+                    Console.Write($"Client disconnected: {clientId.Client.RemoteEndPoint}");
                     break;
                 }
                 var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Message received: {jsonString}");
                 JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
-                Message? message = JsonSerializer.Deserialize<Message>(jsonString,options);
-                if (message is SignupMessage signupMsg)
+                var message = JsonSerializer.Deserialize<Message>(jsonString,options);
+                switch (message)
                 {
-                    await HandleSignup(signupMsg, stream);
-                }
-                else if (message is ChatMessage chatMsg)
-                {
-                    if (chatMsg.ChatType == "JOIN")
+                    case SignupMessage signupMsg:
+                        await HandleSignup(signupMsg, stream);
+                        break;
+                    case ChatMessage chatMsg:
+                        switch (chatMsg.ChatType)
+                        {
+                            case "JOIN":
+                                //client = await HandleJoinClient(clientID, chatMsg);
+                                break;
+                            case "CHAT":
+                                await HandleChatMessage(client, chatMsg);
+                                break;
+                        }
+
+                        break;
+                    case LoginRequestMessage loginMsg:
                     {
-                        //client = await HandleJoinClient(clientID, chatMsg);
-                    }
-                    else if (chatMsg.ChatType == "CHAT")
-                    {
-                        await HandleChatMessage(client, chatMsg);
-                    }
-                }
-                else if (message is LoginMessage loginMsg)
-                {
-                    bool result = await HandleLogin(loginMsg, stream);
-                    if (result == true)
-                    {
-                        client = new Client(clientID, loginMsg.Username);
+                        var result = await HandleLogin(loginMsg, stream);
+                        if (result != true) continue;
+                        client = new Client(clientId, loginMsg.Username);
                         lock(_clientsLock){
                             _loggedInClients.Add(client);
                         }
                         Console.WriteLine($"Client logged in: {client.Name}");
+                        break;
                     }
-                }
-                else if (message is CreateGroupMessage createGroupMsg)
-                {
-                    await HandleCreateGroup(createGroupMsg, stream);
+                    case CreateGroupMessage createGroupMsg:
+                        await HandleCreateGroup(createGroupMsg, stream);
+                        break;
                 }
             }
         }
@@ -93,7 +96,7 @@ public class Server
         }
         finally
         {
-            DisconnectClient(clientID);
+            DisconnectClient(clientId);
         }
     }
     
@@ -105,75 +108,69 @@ public class Server
         }
     }
 
-    private async Task<bool> HandleLogin(LoginMessage message, NetworkStream stream)
+    private async Task<bool> HandleLogin(LoginRequestMessage requestMessage, NetworkStream stream)
     {
-        var sql = "SELECT password FROM ChatSchema.Users WHERE username = @username";
-        string response = "";
-        (string password, bool success) = SQLOperations.SendSQLLogin(sql, message);
+        const string sql = @"SELECT u.id AS user_id, u.password AS password, g.name AS group_name, g.Code AS group_code " +
+                            "FROM ChatSchema.Users AS u " +
+                            "LEFT JOIN ChatSchema.UserGroup AS ug " +
+                            "ON u.id = ug.UserID " + 
+                            "LEFT JOIN ChatSchema.Groups AS g " + 
+                            "ON ug.GroupCode = g.Code " +
+                            "WHERE u.username = @username";
+        var responseMessage = "";
+        var (connectMessage, password,success) = await _sqlOperations.SendSQLLogin(sql, requestMessage);
         if (!success)
         {
             Console.WriteLine("Login failed");
-            response = "401 Unauthorized";
+            responseMessage = "401 Unauthorized";
         }
         else
         {
-            bool isCorrect = Util.CheckPassword(message.Password,password);
-            if (isCorrect)
-            {
-                response = "201 User Login";
-            }
-            else
-            {
-                response = "400 Bad Request";
-            }
+            var isCorrect = Util.CheckPassword(requestMessage.Password,password);
+            responseMessage = isCorrect ? "201 User Login" : "400 Bad Request";
         }
+        connectMessage.Response = responseMessage;
+        string jsonString = JsonSerializer.Serialize(connectMessage);
+        Console.WriteLine($"Message received: {jsonString}");
+        
                     
-        byte[] messageBytes = Encoding.UTF8.GetBytes(response);
-        await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+        await SendResponseMessage(jsonString, stream);
         return success;
     }
 
-    private async Task<Client> HandleConnectClient(TcpClient clientID, ConnectMessage message)
+    private async Task<Client?> HandleConnectClient(TcpClient clientID, ConnectMessage message)
     {
-        var name = message.User;
-        var client = new Client(clientID, name);
-        lock (_clientsLock)
-        {
-            _loggedInClients.Add(client);
-            Console.WriteLine($"Client connected: {clientID.Client.RemoteEndPoint}, Name: {name}");
-        }
-        return client;
+        return new Client(clientID, message.Username);
     }
     
     private async Task HandleSignup(SignupMessage message, NetworkStream stream)
     {
         Console.WriteLine("Sign up request received");
 
-        var sql = "INSERT INTO ChatSchema.Users (Username, Password) VALUES  (@username, @password)";
-        string response = "";
-        if (!SQLOperations.SendSQLSignup(sql, message))
+        const string sql = "INSERT INTO ChatSchema.Users (Username, Password) VALUES  (@username, @password)";
+        var responseMessage = "";
+        if (!_sqlOperations.SendSQLSignup(sql, message))
         {
             Console.WriteLine("Sign up failed");
-            response = "401 Unauthorized";
+            responseMessage = "401 Unauthorized";
         }
         else
         {
-            response = "201 User registered";
+            responseMessage = "201 User registered";
         }
                     
-        byte[] messageBytes = Encoding.UTF8.GetBytes(response);
-        await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+        await SendResponseMessage(responseMessage, stream);
     }
     
     private async Task<bool> HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)
     {
         var groupName = createGroupMsg.groupName;
-        bool response = false;
-        var sql = "INSERT INTO ChatSchema.Groups (Name, Code)  VALUES (@Name, @Code)";
-        for (int i = 0; i < 5; i++)
+        var response = false;
+        const string sql = "INSERT INTO ChatSchema.Groups (Name, Code)  VALUES (@Name, @Code)";
+        for (var i = 0; i < 5; i++)
         {
             var groupCode = Util.GenrateRandomString();
-            response = SQLOperations.SendNewGroup(sql, groupName, groupCode);
+            response = _sqlOperations.SendNewGroup(sql, groupName, groupCode);
             if (response)
             {
                 break;
@@ -183,20 +180,20 @@ public class Server
         var responseMessage = "";
         if (response)
         {
-            
+            responseMessage = "201 User registered";
+            await SendResponseMessage(responseMessage, stream);
         }
         else
         {
             responseMessage = "400 Bad Request";
+            await SendResponseMessage(responseMessage, stream);
         }
-        byte[] messageBytes = Encoding.UTF8.GetBytes(responseMessage);
-        await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
         return response;
     }
 
 
     //Broadcast everyone to currently connected Chat
-    private async Task BroadcastMessage(ChatMessage? message)
+    private Task BroadcastMessage(ChatMessage? message)
     {
         if (message.ChatType == "JOIN")
         {
@@ -207,22 +204,29 @@ public class Server
         {
             message.chatMessage = $"{message.Sender}: {message.chatMessage}";
         }
-        string jsonString = JsonSerializer.Serialize(message);
-        byte[] messageBytes = Encoding.UTF8.GetBytes(jsonString);
+        var jsonString = JsonSerializer.Serialize(message);
+        var messageBytes = Encoding.UTF8.GetBytes(jsonString);
         lock (_clientsLock)
         {
             foreach (var client in _loggedInClients)
             {
-                var clientId = client.ClientID;
-                var name = client.Name;
-                NetworkStream stream = clientId.GetStream();
-                Console.WriteLine($"Sending message: {message.chatMessage} to {clientId.Client.RemoteEndPoint} | {name}");
-                stream.Write(messageBytes, 0, messageBytes.Length);
+                var clientId = client?.ClientID;
+                var name = client?.Name;
+                var stream = clientId?.GetStream();
+                Console.WriteLine($"Sending message: {message.chatMessage} to {clientId?.Client.RemoteEndPoint} | {name}");
+                stream?.Write(messageBytes, 0, messageBytes.Length);
             }
         }
+
+        return Task.CompletedTask;
     }
 
-    public void DisconnectClient(TcpClient client)
+    private async Task HandleJoinGroup()
+    {
+        
+    }
+
+    private void DisconnectClient(TcpClient client)
     {
         lock (_clientsLock)
         {
@@ -235,13 +239,15 @@ public class Server
 
     private string[] GetUserList()
     {
-        List<string> currClients = new List<string>();
-        foreach (var clientName in _loggedInClients)
+        lock (_clientsLock)
         {
-            currClients.Add(clientName.Name);
+            return _loggedInClients.Select(clientName => clientName.Name).ToArray();
         }
-        
-        return currClients.ToArray();
     }
-    
+
+    private async Task SendResponseMessage(string response, NetworkStream stream)
+    {
+        var messageBytes = Encoding.UTF8.GetBytes(response);
+        await stream.WriteAsync(messageBytes);
+    }
 }

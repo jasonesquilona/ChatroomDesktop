@@ -189,7 +189,7 @@ public class NetworkService
     public async Task<bool> CheckCredentials(String username, String password)
     {
         var stream = _tcpClient.GetStream();
-        var message = new LoginMessage{Username = username, Password= password};
+        var message = new LoginRequestMessage{Username = username, Password= password};
         Console.WriteLine("Logging in..");
         var data = ConvertToJson(message);
         
@@ -199,6 +199,9 @@ public class NetworkService
         Console.WriteLine($"Sent Login Request to Server!");
         int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
+        var connectMessage = JsonSerializer.Deserialize<ConnectMessage>(response,options);
+        
         if (response.StartsWith("201"))
         {
             Console.WriteLine("Logged in!");
