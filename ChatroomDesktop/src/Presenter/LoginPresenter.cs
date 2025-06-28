@@ -24,10 +24,10 @@ public class LoginPresenter
 
     private async void OnEnterClicked(object sender, EventArgs e)
     {
-        ConnectMessage result = await CheckCredentials(_view.Name, _view.Password);
+        UserModel result = await CheckCredentials(_view.Name, _view.Password);
         if (result != null)
         {
-            await SuccessfulLogin(_view.Name);    
+            await SuccessfulLogin(result);    
         }
         else
         {
@@ -36,18 +36,16 @@ public class LoginPresenter
         }
     }
 
-    private async Task SuccessfulLogin(string name)
+    private async Task SuccessfulLogin(UserModel user)
     {
-        _user.Username = name;
         Console.WriteLine(_user.Username);
         await _networkService.SetUpConnection(_user.Username);
         
           
         //var mainView = new ChatroomForm();
         var mainView = new GroupChatsForm();
-        var chatModel = new ChatModel();
         ChatService chatService = new ChatService(_networkService);
-        var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService);
+        var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService, user);
         //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
         //var recieve = chatService.ReadyQueue();
         //var listen=  _networkService.HandleIncomingMessages();
@@ -71,7 +69,9 @@ public class LoginPresenter
     {
         if(e.isSignupSuccess)
         {
-            await SuccessfulLogin(e.name);
+            UserModel userModel = new UserModel();
+            userModel.Username = e.name;
+            await SuccessfulLogin(userModel);
         }
         else
         {
@@ -79,7 +79,7 @@ public class LoginPresenter
         }
     }
 
-    private async Task<ConnectMessage> CheckCredentials(string username, string password)
+    private async Task<UserModel> CheckCredentials(string username, string password)
     {
         return await _networkService.CheckCredentials(username, password);
     }

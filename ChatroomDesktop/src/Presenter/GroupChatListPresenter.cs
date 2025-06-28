@@ -10,14 +10,16 @@ public class GroupChatListPresenter
     private readonly ChatService _chatService;
     private readonly NetworkService _networkService;
     private readonly IGroupChatsView _view;
+    private UserModel _user;
 
-    public GroupChatListPresenter(IGroupChatsView view, NetworkService networkService, ChatService chatService)
+    public GroupChatListPresenter(IGroupChatsView view, NetworkService networkService, ChatService chatService, UserModel user)
     {
         _view = view;
         _networkService = networkService;
         _chatService = chatService;
         _view.CreateGroupClicked += OnCreateGroupClicked;
         _view.JoinGroupClicked += OnJoinGroupClicked;
+        _user = user;
     }
 
     private async void OnCreateGroupClicked(object? sender, EventArgs e)

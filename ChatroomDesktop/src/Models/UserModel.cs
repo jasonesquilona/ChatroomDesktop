@@ -2,11 +2,9 @@ namespace ChatroomDesktop.Models;
 
 public class UserModel
 {
-    private string username;
+    public string Username { get; set; }
 
-    public string Username
-    {
-        get => username;
-        set => username = value;
-    }
+    public List<GroupModel> Groups { get; set; }
+    
+    public int UserId { get; set; }
 }

@@ -147,9 +147,12 @@ public class Server
     {
         Console.WriteLine("Sign up request received");
 
-        const string sql = "INSERT INTO ChatSchema.Users (Username, Password) VALUES  (@username, @password)";
+        const string sql = "INSERT INTO ChatSchema.Users (Username, Password) " +
+                           "OUTPUT inserted.id " +
+                           "VALUES  (@username, @password) ";
         var responseMessage = "";
-        if (!_sqlOperations.SendSQLSignup(sql, message))
+        var (connectMessage, success) = await _sqlOperations.SendSQLSignup(sql, message);
+        if (success)
         {
             Console.WriteLine("Sign up failed");
             responseMessage = "401 Unauthorized";
@@ -158,8 +161,11 @@ public class Server
         {
             responseMessage = "201 User registered";
         }
-                    
-        await SendResponseMessage(responseMessage, stream);
+        connectMessage.Response = responseMessage;
+        string jsonString = JsonSerializer.Serialize(connectMessage);
+        Console.WriteLine($"Message received: {jsonString}");
+        
+        await SendResponseMessage(jsonString, stream);
     }
     
     private async Task<bool> HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)

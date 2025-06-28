@@ -63,7 +63,9 @@ public class NetworkService
         int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
         
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
-        if (response.StartsWith("201"))
+        JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
+        var connectMessage = JsonSerializer.Deserialize<ConnectMessage>(response,options);
+        if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
             return true;
@@ -186,7 +188,7 @@ public class NetworkService
         _isConnected = true;
     }
 
-    public async Task<ConnectMessage> CheckCredentials(String username, String password)
+    public async Task<UserModel> CheckCredentials(String username, String password)
     {
         var stream = _tcpClient.GetStream();
         var message = new LoginRequestMessage{Username = username, Password= password};
@@ -205,7 +207,11 @@ public class NetworkService
         if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Logged in!");
-            return connectMessage;
+            UserModel userModel = new UserModel();
+            userModel.Username = username;
+            userModel.Groups = connectMessage.GroupList;
+            userModel.UserId = connectMessage.Userid;
+            return userModel;
         }
         else
         {

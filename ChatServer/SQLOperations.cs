@@ -14,14 +14,16 @@ public class SQLOperations
     {
         
     }
-    public bool SendSQLSignup(string sql, SignupMessage? message)
+    public async Task<(ConnectMessage,bool)> SendSQLSignup(string sql, SignupMessage? message)
     {
         var name = message.Username;
         var password = message.Password;
-        int rowsAffected;
-        lock (SQLLock)
+        bool success = true;
+        SqlDataReader result;
+        ConnectMessage connectMessage = new ConnectMessage();
+        using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
         {
-            using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
+            lock (SQLLock)
             {
                 Console.WriteLine($"Sending New User to Database");
                 try
@@ -31,6 +33,7 @@ public class SQLOperations
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
+                    success = false;
                 }
 
                 Console.WriteLine($"Connected to Database");
@@ -40,22 +43,24 @@ public class SQLOperations
                     sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
                     sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
                     Console.WriteLine("Executing Command");
-                    rowsAffected = sqlCommand.ExecuteNonQuery();
+                    result = sqlCommand.ExecuteReader();
+                }
+            }
+            if (success == true)
+            {
+                connectMessage.Username = name;
+                while (await result.ReadAsync())
+                {
+                    if (connectMessage.Userid == 0)
+                    {
+                        connectMessage.Userid = result.GetInt32(0);
+                    }
+                
                 }
             }
         }
-
-        Console.WriteLine($"rows affected: {rowsAffected}");
-        if (rowsAffected <= 0)
-        {
-            Console.WriteLine("No rows affected");
-            return false;
-        }
-        else
-        {
-            
-            return true;
-        }
+        
+        return (connectMessage, success);
     }
 
     public async Task<(ConnectMessage, string, bool)> SendSQLLogin(string sql, LoginRequestMessage? message)
