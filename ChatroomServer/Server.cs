@@ -11,7 +11,7 @@ public class Server
 {
     
     private TcpListener _tcpListener;
-    private List<Client?> _loggedInClients = new List<Client?>();
+    private List<ClientModel?> _loggedInClients = new List<ClientModel?>();
     private List<TcpClient> _tcpClients = new List<TcpClient>();
     private object _clientsLock = new object();
     private SQLOperations _sqlOperations;
@@ -40,7 +40,7 @@ public class Server
     {
         var stream = clientId.GetStream();
         var buffer = new byte[1024];
-        Client? client = null;
+        ClientModel? client = null;
         _tcpClients.Add(clientId);
         try
         {
@@ -77,7 +77,7 @@ public class Server
                     {
                         var result = await HandleLogin(loginMsg, stream);
                         if (result != true) continue;
-                        client = new Client(clientId, loginMsg.Username);
+                        client = new ClientModel(clientId, loginMsg.Username);
                         lock(_clientsLock){
                             _loggedInClients.Add(client);
                         }
@@ -100,7 +100,7 @@ public class Server
         }
     }
     
-    private async Task HandleChatMessage(Client? client, ChatMessage message)
+    private async Task HandleChatMessage(ClientModel? client, ChatMessage message)
     {
         if(client != null){
             var messageObj = new ChatMessage {ChatType = "CHAT", Sender = message.Sender, chatMessage = message.chatMessage, UserList = GetUserList()};
@@ -138,9 +138,9 @@ public class Server
         return success;
     }
 
-    private async Task<Client?> HandleConnectClient(TcpClient clientID, ConnectMessage message)
+    private async Task<ClientModel?> HandleConnectClient(TcpClient clientID, ConnectMessage message)
     {
-        return new Client(clientID, message.Username);
+        return new ClientModel(clientID, message.Username);
     }
     
     private async Task HandleSignup(SignupMessage message, NetworkStream stream)

@@ -2,7 +2,7 @@ using System.Net.Sockets;
 
 namespace ChatServer;
 
-public class Client
+public class ClientModel
 {
 
     private TcpClient clientID;
@@ -22,7 +22,7 @@ public class Client
     }
   
 
-    public Client(TcpClient tcpClient, string name)
+    public ClientModel(TcpClient tcpClient, string name)
     {
         this.clientID = tcpClient;
         this.name = name;

@@ -12,20 +12,20 @@ public class ActiveGroups
     }
 
 
-    public bool AddEntry(string groupID, Client client)
+    public bool AddEntry(string groupID, ClientModel clientModel)
     {
         if (_groups.ContainsKey(groupID))
         {
-            var userList = _groups[groupID] as List<Client>;
-            userList.Add(client);
+            var userList = _groups[groupID] as List<ClientModel>;
+            userList.Add(clientModel);
             _groups[groupID] = userList;
 
             return true;
         }
         else
         {
-            var userList = new List<Client>();
-            userList.Add(client);
+            var userList = new List<ClientModel>();
+            userList.Add(clientModel);
             _groups.Add(groupID, userList);
             return true;
         }
