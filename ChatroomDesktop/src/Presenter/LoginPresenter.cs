@@ -50,9 +50,9 @@ public class LoginPresenter
         //var recieve = chatService.ReadyQueue();
         //var listen=  _networkService.HandleIncomingMessages();
         Console.WriteLine("Opening Group Chats Form...");
+        mainView.SetPresenter(groupListPrsenter);
         mainView.Show();
         ((Form)_view).Hide();
-
         ///await Task.WhenAll(listen, recieve);
     }
 

@@ -20,6 +20,7 @@ public class GroupChatListPresenter
         _view.CreateGroupClicked += OnCreateGroupClicked;
         _view.JoinGroupClicked += OnJoinGroupClicked;
         _user = user;
+        _view.FormClosed  += OnFormClosed;
     }
 
     private async void OnCreateGroupClicked(object? sender, EventArgs e)
@@ -59,5 +60,12 @@ public class GroupChatListPresenter
         
         await _networkService.SendGroupCreationRequest(message);
         
+    }
+    
+    private async void OnFormClosed(object? sender, EventArgs e)
+    {
+        Console.WriteLine("Closing Form");
+        await _chatService.CloseConnection();
+        Application.Exit();
     }
 }

@@ -14,6 +14,9 @@ public class ChatService
     
     private CancellationTokenSource _cts;
     
+    // The Point of this task is to await on it during cleanup so any leftover messages are sent before shutdown
+    private Task _sendingTask;
+    
     public event Action<ChatMessage> OnNewMessage;
      
     public event Action<ChatMessage> OnNewUser;
@@ -33,7 +36,7 @@ public class ChatService
 
     public async Task ReadyQueue()
     {
-        await ProcessQueue(_cts.Token);
+        _sendingTask = ProcessQueue(_cts.Token);
         Console.WriteLine("Queue has Closed");
     }
 
@@ -78,12 +81,13 @@ public class ChatService
         await _networkService.SendMessage(message);
     }
 
-    public void CloseConnection()
+    public async Task CloseConnection()
     {
         Console.WriteLine("Closing connection");
         _networkService.CloseConnection();
         _cts.Cancel();
-        _sendLock.Release();
+        await _sendingTask;
+        _cts.Dispose();
     }
 
 }
