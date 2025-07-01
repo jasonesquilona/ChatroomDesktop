@@ -223,9 +223,9 @@ public class NetworkService
         byte[] responseBuffer = new byte[1024];
         int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
         Console.WriteLine($"{bytesRead} bytes");
-        /*string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
-        var joinGroupMessage = JsonSerializer.Deserialize<JoinGroupMessage>(response,options);*/
+        var joinGroupMessage = JsonSerializer.Deserialize<JoinGroupMessage>(response,options);
         return "";
     }
     

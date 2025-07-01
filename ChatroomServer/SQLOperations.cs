@@ -184,7 +184,7 @@ public class SQLOperations
         return true;
     }
 
-    public async Task<(string,bool)> SendJoinGroup(string sql, int userId, string groupCode)
+    public async Task<(ConfirmGroupJoinMessage,bool)> SendJoinGroup(string sql, int userId, string groupCode)
     {
         SqlDataReader result;
         bool success = true;
@@ -224,8 +224,11 @@ public class SQLOperations
                 }
             }
         }
-        
+        ConfirmGroupJoinMessage confirmGroupJoinMessage = new ConfirmGroupJoinMessage();
+        confirmGroupJoinMessage.UserId = userId;
+        confirmGroupJoinMessage.GroupCode = groupCode;
+        confirmGroupJoinMessage.GroupName = groupName;
 
-        return ("", true);
+        return (confirmGroupJoinMessage, success);
     }
 }

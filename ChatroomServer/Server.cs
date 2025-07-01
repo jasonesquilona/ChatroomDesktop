@@ -114,8 +114,22 @@ public class Server
                            "FROM ChatSchema.Groups as g " +
                            "WHERE g.Code = @GroupCode";
         var responseMessage = "";
-        var (groupName,success) = await _sqlOperations.SendJoinGroup(sql, joinGroupMsg.UserId, joinGroupMsg.GroupCode);
-        return true;
+        var (confirmMessage, success) = await _sqlOperations.SendJoinGroup(sql, joinGroupMsg.UserId, joinGroupMsg.GroupCode);
+        if (!success)
+        {
+            responseMessage = "401 Unauthorized";
+        }
+        else
+        {
+            responseMessage = "201 User registered"; 
+        }
+        confirmMessage.Response = responseMessage;
+        string jsonString = JsonSerializer.Serialize(confirmMessage);
+        Console.WriteLine($"Message received: {jsonString}");
+        
+                    
+        await SendResponseMessage(jsonString, stream);
+        return success;
     }
 
     private async Task HandleChatMessage(ClientModel? client, ChatMessage message)

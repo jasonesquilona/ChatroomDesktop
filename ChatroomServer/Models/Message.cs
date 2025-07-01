@@ -9,6 +9,7 @@ namespace ChatroomDesktop.Models;
 [JsonDerivedType(typeof(SignupMessage), "SIGNUP")]
 [JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
 [JsonDerivedType(typeof(JoinGroupMessage), "JOINGROUP")]
+[JsonDerivedType(typeof(ConfirmGroupJoinMessage), "CONFIRMJOIN")]
 public abstract class Message
 {
 }
@@ -53,4 +54,12 @@ public class JoinGroupMessage : Message
 {
     public string GroupCode {get; set;}
     public int UserId {get; set;}
+}
+
+public class ConfirmGroupJoinMessage : Message
+{
+    public string Response { get; set; }
+    public string GroupCode {get; set;}
+    public int UserId {get; set;}
+    public string GroupName {get; set;}
 }
