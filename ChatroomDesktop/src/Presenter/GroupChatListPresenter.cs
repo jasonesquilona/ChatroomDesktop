@@ -11,6 +11,7 @@ public class GroupChatListPresenter
     private readonly NetworkService _networkService;
     private readonly IGroupChatsView _view;
     private UserModel _user;
+    private bool _isConnected;
 
     public GroupChatListPresenter(IGroupChatsView view, NetworkService networkService, ChatService chatService, UserModel user)
     {
@@ -20,7 +21,7 @@ public class GroupChatListPresenter
         _view.CreateGroupClicked += OnCreateGroupClicked;
         _view.JoinGroupClicked += OnJoinGroupClicked;
         _user = user;
-        _view.FormClosed  += OnFormClosed;
+        _isConnected = true;
     }
 
     private async void OnCreateGroupClicked(object? sender, EventArgs e)
@@ -45,6 +46,8 @@ public class GroupChatListPresenter
         if (formDialog.ShowDialog() == DialogResult.OK)
         {
             groupCode = formDialog.GroupNameEntered;
+            string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
+            Console.WriteLine($"joined {groupCode}");
         }
         else
         {
@@ -60,12 +63,5 @@ public class GroupChatListPresenter
         
         await _networkService.SendGroupCreationRequest(message);
         
-    }
-    
-    private async void OnFormClosed(object? sender, EventArgs e)
-    {
-        Console.WriteLine("Closing Form");
-        await _chatService.CloseConnection();
-        Application.Exit();
     }
 }

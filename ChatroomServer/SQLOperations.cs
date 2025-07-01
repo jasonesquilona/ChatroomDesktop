@@ -7,8 +7,8 @@ namespace ChatServer;
 public class SQLOperations
 {
     
-    private string connectionString =@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
-    private object SQLLock = new object();
+    private readonly string connectionString =@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;";
+    private readonly object _sqlLock = new object();
 
     public SQLOperations()
     {
@@ -23,7 +23,7 @@ public class SQLOperations
         ConnectMessage connectMessage = new ConnectMessage();
         using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
         {
-            lock (SQLLock)
+            lock (_sqlLock)
             {
                 Console.WriteLine($"Sending New User to Database");
                 try
@@ -72,7 +72,7 @@ public class SQLOperations
         ConnectMessage connectMessage = new ConnectMessage();
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
         {
-            lock (SQLLock)
+            lock (_sqlLock)
             {
                 Console.WriteLine($"Checking Login Request to Server");
                 try
@@ -136,7 +136,7 @@ public class SQLOperations
     public bool SendNewGroup(String sql, string groupName, string groupCode)
     {
         object result;
-        lock (SQLLock)
+        lock (_sqlLock)
         {
             try
             {
@@ -182,5 +182,50 @@ public class SQLOperations
         }
         
         return true;
+    }
+
+    public async Task<(string,bool)> SendJoinGroup(string sql, int userId, string groupCode)
+    {
+        SqlDataReader result;
+        bool success = true;
+        string groupName = "";
+        using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+        {
+            lock (_sqlLock)
+            {
+                Console.WriteLine($"Sending Join Group to Database");
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    success = false;
+                }
+                Console.WriteLine($"Connected to Database");
+                using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                {
+                    Console.WriteLine("New Command");
+                    sqlCommand.Parameters.Add("@UserId", System.Data.SqlDbType.Int).Value = userId;
+                    sqlCommand.Parameters.Add("@GroupCode", System.Data.SqlDbType.VarChar).Value = groupCode;
+                    Console.WriteLine("Executing Command");
+                    result = sqlCommand.ExecuteReader();
+                }
+            }
+            if (success == true)
+            {
+                while (await result.ReadAsync())
+                {
+                    if (groupName.Length == 0)
+                    {
+                        groupName = result.GetString(0);
+                    }
+                }
+            }
+        }
+        
+
+        return ("", true);
     }
 }

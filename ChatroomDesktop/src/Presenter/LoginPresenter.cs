@@ -43,8 +43,8 @@ public class LoginPresenter
         
           
         //var mainView = new ChatroomForm();
-        var mainView = new GroupChatsForm();
         ChatService chatService = new ChatService(_networkService);
+        var mainView = new GroupChatsForm(chatService);
         var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService, user);
         //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
         //var recieve = chatService.ReadyQueue();

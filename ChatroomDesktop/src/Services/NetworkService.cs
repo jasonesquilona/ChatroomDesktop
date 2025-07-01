@@ -135,14 +135,6 @@ public class NetworkService
        }
     }
 
-    private static byte[] ConvertToJson(Message messageObj)
-    {
-        string jsonString = JsonSerializer.Serialize(messageObj);
-        Console.WriteLine(jsonString);
-        var data = Encoding.UTF8.GetBytes(jsonString);
-        return data;
-    }
-
     public async Task<bool> SendGroupCreationRequest(CreateGroupMessage message)
     {
         var data = ConvertToJson(message);
@@ -218,5 +210,30 @@ public class NetworkService
             Console.WriteLine("Invalid username or password!");
             return null;
         }
+    }
+
+    public async Task<string> SendJoinGroupRequest(UserModel _userModel, string groupCode)
+    {
+        var stream = _tcpClient.GetStream();
+        var message = new JoinGroupMessage {UserId = _userModel.UserId, GroupCode = groupCode};
+        
+        Console.WriteLine("Sending JoinGroupRequest to Server...");
+        var data = ConvertToJson(message);
+        await stream.WriteAsync(data, 0, data.Length);
+        byte[] responseBuffer = new byte[1024];
+        int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
+        Console.WriteLine($"{bytesRead} bytes");
+        /*string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
+        var joinGroupMessage = JsonSerializer.Deserialize<JoinGroupMessage>(response,options);*/
+        return "";
+    }
+    
+    private static byte[] ConvertToJson(Message messageObj)
+    {
+        string jsonString = JsonSerializer.Serialize(messageObj);
+        Console.WriteLine(jsonString);
+        var data = Encoding.UTF8.GetBytes(jsonString);
+        return data;
     }
 }

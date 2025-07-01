@@ -8,6 +8,7 @@ namespace ChatroomDesktop.Models;
 [JsonDerivedType(typeof(CreateGroupMessage), "CREATEGROUP")]
 [JsonDerivedType(typeof(SignupMessage), "SIGNUP")]
 [JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
+[JsonDerivedType(typeof(JoinGroupMessage), "JOINGROUP")]
 public abstract class Message
 {
 }

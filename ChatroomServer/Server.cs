@@ -87,6 +87,11 @@ public class Server
                     case CreateGroupMessage createGroupMsg:
                         await HandleCreateGroup(createGroupMsg, stream);
                         break;
+                    case JoinGroupMessage joinGroupMsg:
+                    {
+                        var result = await HandleJoinGroup(joinGroupMsg, stream);
+                        break;
+                    }
                 }
             }
         }
@@ -99,7 +104,20 @@ public class Server
             DisconnectClient(clientId);
         }
     }
-    
+
+    private async Task<bool> HandleJoinGroup(JoinGroupMessage joinGroupMsg, NetworkStream stream)
+    {
+
+        const string sql = @"INSERT INTO ChatSchema.UserGroup (UserId, GroupCode,GroupName) " +
+                           "OUTPUT inserted.GroupName "+
+                           "SELECT @UserId, @GroupCode, Name " +
+                           "FROM ChatSchema.Groups as g " +
+                           "WHERE g.Code = @GroupCode";
+        var responseMessage = "";
+        var (groupName,success) = await _sqlOperations.SendJoinGroup(sql, joinGroupMsg.UserId, joinGroupMsg.GroupCode);
+        return true;
+    }
+
     private async Task HandleChatMessage(ClientModel? client, ChatMessage message)
     {
         if(client != null){
@@ -225,11 +243,6 @@ public class Server
         }
 
         return Task.CompletedTask;
-    }
-
-    private async Task HandleJoinGroup()
-    {
-        
     }
 
     private void DisconnectClient(TcpClient client)
