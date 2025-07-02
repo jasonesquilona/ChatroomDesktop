@@ -20,8 +20,10 @@ public class GroupChatListPresenter
         _chatService = chatService;
         _view.CreateGroupClicked += OnCreateGroupClicked;
         _view.JoinGroupClicked += OnJoinGroupClicked;
+        _view.GroupButtonClicked += OnButtonClick;
         _user = user;
         _isConnected = true;
+        _view.UpdateButtons(user.Groups);
     }
 
     private async void OnCreateGroupClicked(object? sender, EventArgs e)
@@ -45,15 +47,28 @@ public class GroupChatListPresenter
         formDialog.ChangeTextLength(5);
         if (formDialog.ShowDialog() == DialogResult.OK)
         {
-            groupCode = formDialog.GroupNameEntered;
-            string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
-            Console.WriteLine($"joined {groupCode}");
+            if (CheckGroup(groupCode))
+            {
+                groupCode = formDialog.GroupNameEntered;
+                string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
+                Console.WriteLine($"joined {groupCode}");
+                formDialog.Dispose();
+            }
+            else
+            {
+                MessageBox.Show("You are already apart of this group");
+            }
         }
         else
         {
             
         }
         formDialog.Dispose();
+    }
+
+    private async void OnButtonClick(object? sender, EventArgs e)
+    {
+        
     }
 
     private async Task SendCreateGroupData(string groupName)
@@ -63,5 +78,17 @@ public class GroupChatListPresenter
         
         await _networkService.SendGroupCreationRequest(message);
         
+    }
+
+    private bool CheckGroup(string groupCode)
+    {
+        foreach (var group in _user.Groups)
+        {
+            if (group.GroupId == groupCode)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

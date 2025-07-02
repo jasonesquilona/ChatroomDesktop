@@ -32,8 +32,8 @@ partial class GroupChatsForm
     private void InitializeComponent()
     {
         createGroupButton = new System.Windows.Forms.Button();
-        groupList = new System.Windows.Forms.Panel();
         JoinGroupButton = new System.Windows.Forms.Button();
+        groupChatList = new System.Windows.Forms.FlowLayoutPanel();
         SuspendLayout();
         // 
         // createGroupButton
@@ -47,14 +47,6 @@ partial class GroupChatsForm
         createGroupButton.UseVisualStyleBackColor = true;
         createGroupButton.Click += button1_Click;
         // 
-        // groupList
-        // 
-        groupList.AutoScroll = true;
-        groupList.Location = new System.Drawing.Point(28, 23);
-        groupList.Name = "groupList";
-        groupList.Size = new System.Drawing.Size(517, 397);
-        groupList.TabIndex = 1;
-        // 
         // JoinGroupButton
         // 
         JoinGroupButton.Font = new System.Drawing.Font("Segoe UI", 12F);
@@ -66,21 +58,28 @@ partial class GroupChatsForm
         JoinGroupButton.UseVisualStyleBackColor = true;
         JoinGroupButton.Click += button1_Click_1;
         // 
+        // groupChatList
+        // 
+        groupChatList.Location = new System.Drawing.Point(30, 46);
+        groupChatList.Name = "groupChatList";
+        groupChatList.Size = new System.Drawing.Size(543, 319);
+        groupChatList.TabIndex = 3;
+        // 
         // GroupChatsForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(800, 450);
+        Controls.Add(groupChatList);
         Controls.Add(JoinGroupButton);
-        Controls.Add(groupList);
         Controls.Add(createGroupButton);
         Text = "GroupChatForm";
         ResumeLayout(false);
     }
 
-    private System.Windows.Forms.Button JoinGroupButton;
+    private System.Windows.Forms.FlowLayoutPanel groupChatList;
 
-    private System.Windows.Forms.Panel groupList;
+    private System.Windows.Forms.Button JoinGroupButton;
 
     private System.Windows.Forms.Button createGroupButton;
 

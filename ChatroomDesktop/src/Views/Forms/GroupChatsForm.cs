@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using ChatroomDesktop.Models;
 using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services;
 using Microsoft.VisualBasic.ApplicationServices;
@@ -8,6 +10,8 @@ public partial class GroupChatsForm : Form, IGroupChatsView
 {   
     public event EventHandler? CreateGroupClicked;
     public event EventHandler? JoinGroupClicked;
+    public event EventHandler? GroupButtonClicked;
+
     private readonly ChatService _chatService;
 
     private GroupChatListPresenter _groupChatListPresenter;
@@ -44,4 +48,20 @@ public partial class GroupChatsForm : Form, IGroupChatsView
         await _chatService.CloseConnection();
         Application.Exit();
     }
+    
+    public void UpdateButtons(List<GroupModel> groups)
+    {
+        groupChatList.Controls.Clear();
+        foreach (var group in groups)
+        {
+            var button = new Button();
+            button.Text = group.GroupName;
+            button.AutoSize = true;
+            button.Tag = group.GroupId;
+            
+            button.Click += (s, e) => GroupButtonClicked?.Invoke(this, EventArgs.Empty);
+            groupChatList.Controls.Add(button);
+        }
+    }
+    
 }
