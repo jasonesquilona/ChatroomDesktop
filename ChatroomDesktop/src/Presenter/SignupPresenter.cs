@@ -23,10 +23,11 @@ public class SignupPresenter
      private async void OnEnterClicked(object? sender, EventArgs e)
      {
           var result = await _networkService.SendSignupData(_view.Username, _view.Password);
-          if (result)
+          if (result != null)
           {
-               ((Form)_view).Hide();
-               FormClosed?.Invoke(this, new SignUpEventArgs(isSignupSuccess: true, _view.Username));
+               Console.WriteLine(result);
+               _view.HideForm();
+               FormClosed?.Invoke(this, new SignUpEventArgs(isSignupSuccess: true, result));
           }
           else
           {
@@ -36,7 +37,7 @@ public class SignupPresenter
 
      private void OnCancelClicked(object? sender, EventArgs e)
      {
-          ((Form)_view).Hide();
+          _view.HideForm();
           FormClosed?.Invoke(this, EventArgs.Empty);
      }
 }

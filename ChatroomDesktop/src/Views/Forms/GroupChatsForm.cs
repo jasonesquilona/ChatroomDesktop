@@ -52,15 +52,18 @@ public partial class GroupChatsForm : Form, IGroupChatsView
     public void UpdateButtons(List<GroupModel> groups)
     {
         groupChatList.Controls.Clear();
-        foreach (var group in groups)
+        if (groups.Count > 0)
         {
-            var button = new Button();
-            button.Text = group.GroupName;
-            button.AutoSize = true;
-            button.Tag = group.GroupId;
-            
-            button.Click += (s, e) => GroupButtonClicked?.Invoke(this, EventArgs.Empty);
-            groupChatList.Controls.Add(button);
+            foreach (var group in groups)
+            {
+                var button = new Button();
+                button.Text = group.GroupName;
+                button.AutoSize = true;
+                button.Tag = group.GroupId;
+
+                button.Click += (s, e) => GroupButtonClicked?.Invoke(this, EventArgs.Empty);
+                groupChatList.Controls.Add(button);
+            }
         }
     }
     

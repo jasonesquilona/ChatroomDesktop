@@ -30,4 +30,9 @@ public partial class SignupForm : Form, ISignupView
     {
         this.Close();
     }
+
+    public void HideForm()
+    {
+        this.Hide();
+    }
 }

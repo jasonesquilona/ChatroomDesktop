@@ -10,4 +10,8 @@ public interface ILoginView
     event EventHandler? FormClosed;
 
     void IncorrectLoginDetails();
+
+    void ShowForm();
+    
+    void HideForm();
 }

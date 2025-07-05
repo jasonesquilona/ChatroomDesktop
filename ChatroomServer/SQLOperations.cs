@@ -48,6 +48,8 @@ public class SQLOperations
             }
             if (success == true)
             {
+                List<GroupModel> groups = new List<GroupModel>();
+                connectMessage.GroupList = groups;
                 connectMessage.Username = name;
                 while (await result.ReadAsync())
                 {

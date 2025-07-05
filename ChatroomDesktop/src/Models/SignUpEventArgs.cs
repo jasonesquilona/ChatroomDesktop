@@ -3,12 +3,12 @@ namespace ChatroomDesktop.Models;
 public class SignUpEventArgs : EventArgs{
     public bool isSignupSuccess { get;}
     
-    public string name { get;}
+    public ConnectMessage msg { get;}
 
-    public SignUpEventArgs(bool isSignupSuccess, string name)
+    public SignUpEventArgs(bool isSignupSuccess,ConnectMessage msg)
     {
         this.isSignupSuccess = isSignupSuccess;
-        this.name = name;
+        this.msg = msg;
     }
     
 }

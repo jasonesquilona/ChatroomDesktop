@@ -54,6 +54,16 @@ public partial class LoginForm : Form, ILoginView
         this.Close();
     }
 
+    public void ShowForm()
+    {
+        this.Show();
+    }
+
+    public void HideForm()
+    {
+        this.Hide();
+    }
+
     private void label1_Click(object sender, EventArgs e)
     {
     }

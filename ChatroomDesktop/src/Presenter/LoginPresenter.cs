@@ -7,8 +7,8 @@ namespace ChatroomDesktop.Presenter;
 
 public class LoginPresenter
 {
-    private readonly ILoginView _view;
-    private readonly UserModel _user;
+    private ILoginView _view;
+    private UserModel _user;
     private NetworkService _networkService;
     
 
@@ -22,11 +22,17 @@ public class LoginPresenter
     }
     
 
-    private async void OnEnterClicked(object sender, EventArgs e)
+    private void OnEnterClicked(object sender, EventArgs e)
+    {
+        _ = HandleEnterClicked();
+    }
+
+    private async Task HandleEnterClicked()
     {
         UserModel result = await CheckCredentials(_view.Name, _view.Password);
         if (result != null)
         {
+            
             await SuccessfulLogin(result);    
         }
         else
@@ -38,44 +44,63 @@ public class LoginPresenter
 
     private async Task SuccessfulLogin(UserModel user)
     {
-        Console.WriteLine(_user.Username);
-        await _networkService.SetUpConnection(_user.Username);
+        try
+        {
+            this._user = user;
+            Console.WriteLine(_user.Username);
+            await _networkService.SetUpConnection(_user.Username);
         
           
-        //var mainView = new ChatroomForm();
-        ChatService chatService = new ChatService(_networkService);
-        var mainView = new GroupChatsForm(chatService);
-        var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService, user);
-        //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
-        //var recieve = chatService.ReadyQueue();
-        //var listen=  _networkService.HandleIncomingMessages();
-        Console.WriteLine("Opening Group Chats Form...");
-        mainView.SetPresenter(groupListPrsenter);
-        mainView.Show();
-        ((Form)_view).Hide();
-        ///await Task.WhenAll(listen, recieve);
+            //var mainView = new ChatroomForm();
+            ChatService chatService = new ChatService(_networkService);
+            var mainView = new GroupChatsForm(chatService);
+            var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService, user);
+            //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
+            //var recieve = chatService.ReadyQueue();
+            //var listen=  _networkService.HandleIncomingMessages();
+            Console.WriteLine("Opening Group Chats Form...");
+            mainView.SetPresenter(groupListPrsenter);
+            _view.HideForm();
+            mainView.Show();
+            ///await Task.WhenAll(listen, recieve);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in SuccessfulLogin: {ex}");
+            MessageBox.Show($"Login failed: {ex.Message}");
+        }
     }
 
     private void OnSignUpClicked(object sender, EventArgs e)
     {
         var signupForm = new SignupForm();
         var signupPresenter = new SignupPresenter(signupForm, _networkService);
-        signupForm.Show();
         signupPresenter.FormClosed += (sender, e) => OnSignUpClosed(sender, e as SignUpEventArgs);
-        ((Form)_view).Hide();
+        signupForm.Show();
+        _view.HideForm();
     }
 
-    private async void OnSignUpClosed(object? sender,SignUpEventArgs e)
+    private async Task OnSignUpClosed(object? sender,SignUpEventArgs e)
     {
         if(e.isSignupSuccess)
         {
+            Console.WriteLine("Signup successful!");
             UserModel userModel = new UserModel();
-            userModel.Username = e.name;
-            await SuccessfulLogin(userModel);
+            userModel.Username = e.msg.Username;
+            userModel.UserId = e.msg.Userid;
+            userModel.Groups = e.msg.GroupList;
+            try
+            {
+                await SuccessfulLogin(userModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Handler error: {ex}");
+            }
         }
         else
         {
-            ((Form)_view).Show();   
+            _view.ShowForm();
         }
     }
 

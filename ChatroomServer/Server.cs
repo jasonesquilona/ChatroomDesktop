@@ -184,7 +184,7 @@ public class Server
                            "VALUES  (@username, @password) ";
         var responseMessage = "";
         var (connectMessage, success) = await _sqlOperations.SendSQLSignup(sql, message);
-        if (success)
+        if (!success)
         {
             Console.WriteLine("Sign up failed");
             responseMessage = "401 Unauthorized";

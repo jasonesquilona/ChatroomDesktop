@@ -9,10 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Tests\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Update="src\Views\Forms\ChatroomForm.cs">
         <SubType>Form</SubType>
       </Compile>

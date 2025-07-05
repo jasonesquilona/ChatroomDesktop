@@ -44,7 +44,7 @@ public class NetworkService
         _userModel.Username = name;
     }
 
-    public async Task<bool> SendSignupData(string username, string password)
+    public async Task<ConnectMessage> SendSignupData(string username, string password)
     {
         if (!this._isConnected)
         {
@@ -68,11 +68,11 @@ public class NetworkService
         if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
-            return true;
+            return connectMessage;
         }
         else
         {
-            return false;
+            return null;
         }
     }
 

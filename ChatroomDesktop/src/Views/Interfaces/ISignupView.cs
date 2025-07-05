@@ -10,4 +10,6 @@ public interface ISignupView
     event EventHandler? CancelClicked;
     
     void CloseForm();
+    
+    void HideForm();
 }
