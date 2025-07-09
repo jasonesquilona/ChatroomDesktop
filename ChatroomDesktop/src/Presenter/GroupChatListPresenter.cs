@@ -8,13 +8,13 @@ namespace ChatroomDesktop.Presenter;
 
 public class GroupChatListPresenter
 {
-    private readonly ChatService _chatService;
+    private readonly IChatService _chatService;
     private readonly INetworkService _networkService;
     private readonly IGroupChatsView _view;
     private UserModel _user;
     private bool _isConnected;
 
-    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, ChatService chatService, UserModel user)
+    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService, UserModel user)
     {
         _view = view;
         _networkService = networkService;

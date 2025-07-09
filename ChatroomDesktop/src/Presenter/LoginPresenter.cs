@@ -13,11 +13,11 @@ public class LoginPresenter
     private INetworkService _networkService;
     private IMessageService _messageService;
     private INavigatorService _navigatorService;
-    private ChatService _chatService;
+    private IChatService _chatService;
     
 
     public LoginPresenter(ILoginView view, UserModel user, INetworkService networkService,
-        IMessageService messageService, INavigatorService navigatorService, ChatService chatService)
+        IMessageService messageService, INavigatorService navigatorService, IChatService chatService)
     {
         _view = view;
         _user = user;

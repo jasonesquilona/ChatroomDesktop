@@ -4,7 +4,7 @@ using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
 
-public class ChatService
+public class ChatService : IChatService
 {
 
     private INetworkService _networkService;

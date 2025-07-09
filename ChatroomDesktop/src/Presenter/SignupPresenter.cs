@@ -13,8 +13,8 @@ public class SignupPresenter
      
      private INetworkService _networkService;
      private INavigatorService _navigatorService;
-     private ChatService _chatService;
-     public SignupPresenter(ISignupView view, INetworkService networkService, INavigatorService navigatorService, ChatService chatService)
+     private IChatService _chatService;
+     public SignupPresenter(ISignupView view, INetworkService networkService, INavigatorService navigatorService, IChatService chatService)
      {
           this._view = view;
           _view.CancelClicked += OnCancelClicked;

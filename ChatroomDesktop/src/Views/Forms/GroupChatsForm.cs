@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services;
+using ChatroomDesktop.Services.Interfaces;
 using Microsoft.VisualBasic.ApplicationServices;
 
 namespace ChatroomDesktop.Views;
@@ -12,10 +13,10 @@ public partial class GroupChatsForm : Form, IGroupChatsView
     public event EventHandler? JoinGroupClicked;
     public event EventHandler? GroupButtonClicked;
 
-    private readonly ChatService _chatService;
+    private readonly IChatService _chatService;
 
     private GroupChatListPresenter _groupChatListPresenter;
-    public GroupChatsForm(ChatService service)
+    public GroupChatsForm(IChatService service)
     {
         InitializeComponent();
         createGroupButton.Click += (s,e) => CreateGroupClicked?.Invoke(this, EventArgs.Empty);
