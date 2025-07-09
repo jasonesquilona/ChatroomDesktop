@@ -8,6 +8,10 @@ public class Util
 
     public static bool CheckPassword(string givenPassword, string actualPassword)
     {
+        if (actualPassword == null)
+        {
+            return false;
+        }
         Console.WriteLine("Checking password");
         byte[] hashBytes = Convert.FromBase64String(actualPassword);
         byte[] salt = new byte[16];

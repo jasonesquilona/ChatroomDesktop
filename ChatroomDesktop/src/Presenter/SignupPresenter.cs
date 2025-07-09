@@ -9,16 +9,19 @@ namespace ChatroomDesktop.Presenter;
 public class SignupPresenter
 {
      private readonly ISignupView _view;
-
-     public event EventHandler? FormClosed;
+     
      
      private INetworkService _networkService;
-     public SignupPresenter(ISignupView view, INetworkService networkService)
+     private INavigatorService _navigatorService;
+     private ChatService _chatService;
+     public SignupPresenter(ISignupView view, INetworkService networkService, INavigatorService navigatorService, ChatService chatService)
      {
           this._view = view;
           _view.CancelClicked += OnCancelClicked;
           _view.EnterClicked += OnEnterClicked;
           _networkService = networkService;
+          _navigatorService = navigatorService;
+          _chatService = chatService;
      }
 
      private async void OnEnterClicked(object? sender, EventArgs e)
@@ -28,7 +31,11 @@ public class SignupPresenter
           {
                Console.WriteLine(result);
                _view.HideForm();
-               FormClosed?.Invoke(this, new SignUpEventArgs(isSignupSuccess: true, result));
+               UserModel userModel = new UserModel();
+               userModel.Username = result.Username;
+               userModel.UserId = result.Userid;
+               userModel.Groups = result.GroupList;
+               _navigatorService.OpenChatroomListPage(_chatService, _networkService, userModel);
           }
           else
           {
@@ -39,6 +46,6 @@ public class SignupPresenter
      private void OnCancelClicked(object? sender, EventArgs e)
      {
           _view.HideForm();
-          FormClosed?.Invoke(this, EventArgs.Empty);
+          _navigatorService.OpenLoginPage();
      }
 }

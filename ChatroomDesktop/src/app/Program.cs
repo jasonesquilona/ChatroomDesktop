@@ -3,6 +3,7 @@ using ChatroomDesktop.Models;
 using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Views;
+using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop;
 
@@ -24,9 +25,12 @@ static class Program
     {
         var view = new LoginForm();
         var user = new UserModel();
+        var navigatorService = new NavigatorService();
         NetworkService networkService = new NetworkService();
+        MessageService messageService = new MessageService();
+        ChatService chatService = new ChatService(networkService);
         //await networkService.ConnectToServer();
-        var presenter = new LoginPresenter(view, user, networkService);
+        var presenter = new LoginPresenter(view, user, networkService, messageService, navigatorService, chatService);
         view.SetPresenter(presenter);
         Application.Run((Form)view);
     }

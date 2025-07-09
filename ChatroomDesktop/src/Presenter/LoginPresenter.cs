@@ -11,15 +11,22 @@ public class LoginPresenter
     private ILoginView _view;
     private UserModel _user;
     private INetworkService _networkService;
+    private IMessageService _messageService;
+    private INavigatorService _navigatorService;
+    private ChatService _chatService;
     
 
-    public LoginPresenter(ILoginView view, UserModel user, INetworkService networkService)
+    public LoginPresenter(ILoginView view, UserModel user, INetworkService networkService,
+        IMessageService messageService, INavigatorService navigatorService, ChatService chatService)
     {
         _view = view;
         _user = user;
         _view.EnterClicked += OnEnterClicked;
         _view.SignUpClicked += OnSignUpClicked;
+        _messageService = messageService;
         _networkService = networkService;
+        _chatService = chatService;
+        _navigatorService = navigatorService;
     }
     
 
@@ -39,7 +46,7 @@ public class LoginPresenter
         else
         {
             _view.IncorrectLoginDetails();
-            MessageBox.Show("Wrong username or password!");
+            _messageService.ShowMessage("Wrong username or password!");
         }
     }
 
@@ -53,16 +60,12 @@ public class LoginPresenter
         
           
             //var mainView = new ChatroomForm();
-            ChatService chatService = new ChatService(_networkService);
-            var mainView = new GroupChatsForm(chatService);
-            var groupListPrsenter = new GroupChatListPresenter(mainView, _networkService, chatService, user);
             //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
             //var recieve = chatService.ReadyQueue();
             //var listen=  _networkService.HandleIncomingMessages();
             Console.WriteLine("Opening Group Chats Form...");
-            mainView.SetPresenter(groupListPrsenter);
+            _navigatorService.OpenChatroomListPage(_chatService,_networkService, _user);
             _view.HideForm();
-            mainView.Show();
             ///await Task.WhenAll(listen, recieve);
         }
         catch (Exception ex)
@@ -74,35 +77,8 @@ public class LoginPresenter
 
     private void OnSignUpClicked(object sender, EventArgs e)
     {
-        var signupForm = new SignupForm();
-        var signupPresenter = new SignupPresenter(signupForm, _networkService);
-        signupPresenter.FormClosed += (sender, e) => OnSignUpClosed(sender, e as SignUpEventArgs);
-        signupForm.Show();
+        _navigatorService.OpenSignupPage(_networkService, _chatService, _navigatorService);
         _view.HideForm();
-    }
-
-    private async Task OnSignUpClosed(object? sender,SignUpEventArgs e)
-    {
-        if(e.isSignupSuccess)
-        {
-            Console.WriteLine("Signup successful!");
-            UserModel userModel = new UserModel();
-            userModel.Username = e.msg.Username;
-            userModel.UserId = e.msg.Userid;
-            userModel.Groups = e.msg.GroupList;
-            try
-            {
-                await SuccessfulLogin(userModel);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Handler error: {ex}");
-            }
-        }
-        else
-        {
-            _view.ShowForm();
-        }
     }
 
     private async Task<UserModel> CheckCredentials(string username, string password)
