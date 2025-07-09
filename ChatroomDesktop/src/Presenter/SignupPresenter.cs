@@ -1,5 +1,6 @@
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Services;
+using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
 using Message = ChatroomDesktop.Models.Message;
 
@@ -11,8 +12,8 @@ public class SignupPresenter
 
      public event EventHandler? FormClosed;
      
-     private NetworkService _networkService;
-     public SignupPresenter(ISignupView view, NetworkService networkService)
+     private INetworkService _networkService;
+     public SignupPresenter(ISignupView view, INetworkService networkService)
      {
           this._view = view;
           _view.CancelClicked += OnCancelClicked;

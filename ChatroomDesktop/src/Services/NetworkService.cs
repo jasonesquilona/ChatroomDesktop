@@ -4,13 +4,14 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Utilities;
 using Microsoft.VisualBasic.CompilerServices;
 using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
 
-public class NetworkService
+public class NetworkService : INetworkService
 {
     private TcpClient _tcpClient;
     private IPEndPoint _ipEndPoint;
@@ -212,10 +213,10 @@ public class NetworkService
         }
     }
 
-    public async Task<string> SendJoinGroupRequest(UserModel _userModel, string groupCode)
+    public async Task<string> SendJoinGroupRequest(UserModel userModel, string groupCode)
     {
         var stream = _tcpClient.GetStream();
-        var message = new JoinGroupMessage {UserId = _userModel.UserId, GroupCode = groupCode};
+        var message = new JoinGroupMessage {UserId = userModel.UserId, GroupCode = groupCode};
         
         Console.WriteLine("Sending JoinGroupRequest to Server...");
         var data = ConvertToJson(message);

@@ -1,5 +1,6 @@
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Services;
+using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
 using Microsoft.VisualBasic.ApplicationServices;
 
@@ -9,10 +10,10 @@ public class LoginPresenter
 {
     private ILoginView _view;
     private UserModel _user;
-    private NetworkService _networkService;
+    private INetworkService _networkService;
     
 
-    public LoginPresenter(ILoginView view, UserModel user, NetworkService networkService)
+    public LoginPresenter(ILoginView view, UserModel user, INetworkService networkService)
     {
         _view = view;
         _user = user;

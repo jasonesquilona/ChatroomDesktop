@@ -1,5 +1,6 @@
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Services;
+using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
 using Message = ChatroomDesktop.Models.Message;
 
@@ -8,12 +9,12 @@ namespace ChatroomDesktop.Presenter;
 public class GroupChatListPresenter
 {
     private readonly ChatService _chatService;
-    private readonly NetworkService _networkService;
+    private readonly INetworkService _networkService;
     private readonly IGroupChatsView _view;
     private UserModel _user;
     private bool _isConnected;
 
-    public GroupChatListPresenter(IGroupChatsView view, NetworkService networkService, ChatService chatService, UserModel user)
+    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, ChatService chatService, UserModel user)
     {
         _view = view;
         _networkService = networkService;
@@ -45,23 +46,30 @@ public class GroupChatListPresenter
         GroupCreationForm formDialog= new GroupCreationForm();
         formDialog.ChangeLabelText("Enter Group Code");
         formDialog.ChangeTextLength(5);
-        if (formDialog.ShowDialog() == DialogResult.OK)
+        try
         {
-            if (CheckGroup(groupCode))
+            if (formDialog.ShowDialog() == DialogResult.OK)
             {
-                groupCode = formDialog.GroupNameEntered;
-                string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
-                Console.WriteLine($"joined {groupCode}");
-                formDialog.Dispose();
+                if (CheckGroup(groupCode))
+                {
+                    groupCode = formDialog.GroupNameEntered;
+                    string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
+                    Console.WriteLine($"joined {groupCode}");
+                    formDialog.Dispose();
+                }
+                else
+                {
+                    MessageBox.Show("You are already apart of this group");
+                }
             }
             else
             {
-                MessageBox.Show("You are already apart of this group");
+
             }
         }
-        else
+        catch (Exception ex)
         {
-            
+            Console.WriteLine(ex.Message);
         }
         formDialog.Dispose();
     }

@@ -1,4 +1,5 @@
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Services.Interfaces;
 using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Services;
@@ -6,7 +7,7 @@ namespace ChatroomDesktop.Services;
 public class ChatService
 {
 
-    private NetworkService _networkService;
+    private INetworkService _networkService;
 
     private SemaphoreSlim _sendLock;
     
@@ -20,7 +21,7 @@ public class ChatService
     public event Action<ChatMessage> OnNewMessage;
      
     public event Action<ChatMessage> OnNewUser;
-    public ChatService(NetworkService networkService)
+    public ChatService(INetworkService networkService)
     {
         this._networkService = networkService;
         _networkService.OnMessageReceived += ReceiveMessage;
