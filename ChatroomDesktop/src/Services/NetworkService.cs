@@ -36,16 +36,15 @@ public class NetworkService : INetworkService
         this._isConnected = false;
     }
 
-    public async Task SetUpConnection(string name)
+    public async Task SetUpConnection()
     {
         if (!this._isConnected)
         {
             await ConnectToServer();
         }
-        _userModel.Username = name;
     }
 
-    public async Task<ConnectMessage> SendSignupData(string username, string password)
+    public async Task<UserModel> SendSignupData(string username, string password)
     {
         if (!this._isConnected)
         {
@@ -69,7 +68,10 @@ public class NetworkService : INetworkService
         if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
-            return connectMessage;
+            _userModel.UserId = connectMessage.Userid;
+            _userModel.Username = connectMessage.Username;
+            _userModel.Groups = connectMessage.GroupList;
+            return _userModel;
         }
         else
         {
@@ -237,4 +239,5 @@ public class NetworkService : INetworkService
         var data = Encoding.UTF8.GetBytes(jsonString);
         return data;
     }
+    
 }

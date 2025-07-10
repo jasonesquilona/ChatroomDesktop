@@ -21,47 +21,64 @@ public class SQLOperations
         bool success = true;
         SqlDataReader result;
         ConnectMessage connectMessage = new ConnectMessage();
-        using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
+        try
         {
-            lock (_sqlLock)
+            using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
             {
-                Console.WriteLine($"Sending New User to Database");
-                try
+                lock (_sqlLock)
                 {
-                    sqlConnection.Open();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    success = false;
+                    Console.WriteLine($"Sending New User to Database");
+                    try
+                    {
+                        sqlConnection.Open();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        success = false;
+                    }
+
+                    Console.WriteLine($"Connected to Database");
+                    using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                    {
+                        Console.WriteLine("New Command");
+                        sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
+                        sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
+                        Console.WriteLine("Executing Command");
+                        result = sqlCommand.ExecuteReader();
+                    }
                 }
 
-                Console.WriteLine($"Connected to Database");
-                using (SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection))
+                if (success == true)
                 {
-                    Console.WriteLine("New Command");
-                    sqlCommand.Parameters.Add("@username", System.Data.SqlDbType.VarChar).Value = name;
-                    sqlCommand.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = password;
-                    Console.WriteLine("Executing Command");
-                    result = sqlCommand.ExecuteReader();
-                }
-            }
-            if (success == true)
-            {
-                List<GroupModel> groups = new List<GroupModel>();
-                connectMessage.GroupList = groups;
-                connectMessage.Username = name;
-                while (await result.ReadAsync())
-                {
-                    if (connectMessage.Userid == 0)
+                    List<GroupModel> groups = new List<GroupModel>();
+                    connectMessage.GroupList = groups;
+                    connectMessage.Username = name;
+                    while (await result.ReadAsync())
                     {
-                        connectMessage.Userid = result.GetInt32(0);
+                        if (connectMessage.Userid == 0)
+                        {
+                            connectMessage.Userid = result.GetInt32(0);
+                        }
+
                     }
-                
                 }
             }
         }
-        
+        catch (SqlException ex)
+        {
+            if (ex.Number == 2627 || ex.Number == 2601)
+            {
+                Console.WriteLine("Signup failed: Username already exists.");
+                success = false;
+            }
+            else
+            {
+                Console.WriteLine("Database error: " + ex.Message);
+                success = false;
+            }
+        }
+
         return (connectMessage, success);
     }
 

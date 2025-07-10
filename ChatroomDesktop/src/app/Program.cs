@@ -25,12 +25,14 @@ static class Program
     {
         var view = new LoginForm();
         var user = new UserModel();
-        var navigatorService = new NavigatorService();
+      
         NetworkService networkService = new NetworkService();
         MessageService messageService = new MessageService();
         ChatService chatService = new ChatService(networkService);
         //await networkService.ConnectToServer();
-        var presenter = new LoginPresenter(view, user, networkService, messageService, navigatorService, chatService);
+        var navigatorService = new NavigatorService();
+        var presenter = new LoginPresenter(view,networkService, messageService, navigatorService, chatService);
+        navigatorService.SetPresenter(presenter);
         view.SetPresenter(presenter);
         Application.Run((Form)view);
     }

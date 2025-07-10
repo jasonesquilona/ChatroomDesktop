@@ -22,16 +22,16 @@ public class LoginPresenterTest
         mockView.Setup(v => v.Name).Returns("test");
         mockView.Setup(v => v.Password).Returns("password");
         mockService.Setup(s => s.CheckCredentials("test", "password")).ReturnsAsync(user);
-        mockService.Setup(s => s.SetUpConnection("test")).Returns(Task.CompletedTask);
+        mockService.Setup(s => s.SetUpConnection()).Returns(Task.CompletedTask);
         
-        var presenter = new LoginPresenter(mockView.Object, user, mockService.Object, mockMessageService.Object, navigatorService.Object, chatService.Object);
+        var presenter = new LoginPresenter(mockView.Object, mockService.Object, mockMessageService.Object, navigatorService.Object, chatService.Object);
         
         //Trigger EnterClicked Event
         mockView.Raise(v => v.EnterClicked += null, EventArgs.Empty);
         
         // Assert
         mockService.Verify(s => s.CheckCredentials("test", "password"), Times.Once);
-        mockService.Verify(s => s.SetUpConnection("test"), Times.Once);
+        mockService.Verify(s => s.SetUpConnection(), Times.Once);
         mockView.Verify(v => v.IncorrectLoginDetails(), Times.Never);
     }
 
@@ -48,7 +48,7 @@ public class LoginPresenterTest
         mockView.Setup(v => v.Password).Returns("password");
         mockService.Setup(s => s.CheckCredentials("test", "password")).ReturnsAsync((UserModel)null);
         
-        var presenter = new LoginPresenter(mockView.Object, user, mockService.Object, mockMessageService.Object, navigatorService.Object, (chatService.Object));
+        var presenter = new LoginPresenter(mockView.Object, mockService.Object, mockMessageService.Object, navigatorService.Object, (chatService.Object));
         
         mockView.Raise(v => v.EnterClicked += null, EventArgs.Empty);
         mockService.Verify(s => s.CheckCredentials("test", "password"), Times.Once);
@@ -63,6 +63,13 @@ public class LoginPresenterTest
         var mockService = new Mock<INetworkService>();
         var mockMessageService = new Mock<IMessageService>();
         var user = new UserModel();
+        var chatService = new Mock<IChatService>();
+        var navigatorService = new Mock<INavigatorService>();
+
+        var presenter = new LoginPresenter(mockView.Object,mockService.Object, mockMessageService.Object, navigatorService.Object, chatService.Object);
         
+        mockView.Raise(v => v.SignUpClicked += null, EventArgs.Empty);
+        navigatorService.Verify(ns => ns.OpenSignupPage(mockService.Object, chatService.Object, navigatorService.Object, mockMessageService.Object), Times.Once);
+
     }
 }

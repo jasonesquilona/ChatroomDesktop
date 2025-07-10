@@ -6,7 +6,7 @@ using Microsoft.VisualBasic.ApplicationServices;
 
 namespace ChatroomDesktop.Presenter;
 
-public class LoginPresenter
+public class LoginPresenter : BasePresenter<ILoginView>
 {
     private ILoginView _view;
     private UserModel _user;
@@ -16,11 +16,10 @@ public class LoginPresenter
     private IChatService _chatService;
     
 
-    public LoginPresenter(ILoginView view, UserModel user, INetworkService networkService,
-        IMessageService messageService, INavigatorService navigatorService, IChatService chatService)
+    public LoginPresenter(ILoginView view, INetworkService networkService,
+        IMessageService messageService, INavigatorService navigatorService, IChatService chatService) : base(view)
     {
         _view = view;
-        _user = user;
         _view.EnterClicked += OnEnterClicked;
         _view.SignUpClicked += OnSignUpClicked;
         _messageService = messageService;
@@ -56,9 +55,8 @@ public class LoginPresenter
         {
             this._user = user;
             Console.WriteLine(_user.Username);
-            await _networkService.SetUpConnection(_user.Username);
-        
-          
+            await _networkService.SetUpConnection();
+            
             //var mainView = new ChatroomForm();
             //var chatroomPresenter = new ChatroomPresenter(mainView,chatModel,_networkService,chatService, _user);
             //var recieve = chatService.ReadyQueue();
@@ -77,7 +75,7 @@ public class LoginPresenter
 
     private void OnSignUpClicked(object sender, EventArgs e)
     {
-        _navigatorService.OpenSignupPage(_networkService, _chatService, _navigatorService);
+        _navigatorService.OpenSignupPage(_networkService, _chatService, _navigatorService, _messageService);
         _view.HideForm();
     }
 

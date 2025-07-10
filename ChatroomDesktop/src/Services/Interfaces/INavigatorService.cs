@@ -1,14 +1,19 @@
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Presenter;
 
 namespace ChatroomDesktop.Services.Interfaces;
 
 public interface INavigatorService
 {
-    void OpenSignupPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService);
+    void OpenSignupPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService,
+        IMessageService messageService);
     
     void OpenChatroomPage();
 
     void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user);
-    
-    void OpenLoginPage();
+
+    void OpenLoginPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService,
+        IMessageService messageService);
+
+    void SetPresenter(IPresenter presenter);
 }

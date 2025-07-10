@@ -6,7 +6,7 @@ using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Presenter;
 
-public class SignupPresenter
+public class SignupPresenter : BasePresenter<ISignupView>
 {
      private readonly ISignupView _view;
      
@@ -14,7 +14,9 @@ public class SignupPresenter
      private INetworkService _networkService;
      private INavigatorService _navigatorService;
      private IChatService _chatService;
-     public SignupPresenter(ISignupView view, INetworkService networkService, INavigatorService navigatorService, IChatService chatService)
+     private IMessageService _messageService;
+     public SignupPresenter(ISignupView view, INetworkService networkService, INavigatorService navigatorService,
+          IChatService chatService, IMessageService messageService) : base(view)
      {
           this._view = view;
           _view.CancelClicked += OnCancelClicked;
@@ -22,6 +24,7 @@ public class SignupPresenter
           _networkService = networkService;
           _navigatorService = navigatorService;
           _chatService = chatService;
+          _messageService = messageService;
      }
 
      private async void OnEnterClicked(object? sender, EventArgs e)
@@ -31,11 +34,7 @@ public class SignupPresenter
           {
                Console.WriteLine(result);
                _view.HideForm();
-               UserModel userModel = new UserModel();
-               userModel.Username = result.Username;
-               userModel.UserId = result.Userid;
-               userModel.Groups = result.GroupList;
-               _navigatorService.OpenChatroomListPage(_chatService, _networkService, userModel);
+               _navigatorService.OpenChatroomListPage(_chatService, _networkService, result);
           }
           else
           {
@@ -46,6 +45,6 @@ public class SignupPresenter
      private void OnCancelClicked(object? sender, EventArgs e)
      {
           _view.HideForm();
-          _navigatorService.OpenLoginPage();
+          _navigatorService.OpenLoginPage(_networkService, _chatService, _navigatorService, _messageService);
      }
 }

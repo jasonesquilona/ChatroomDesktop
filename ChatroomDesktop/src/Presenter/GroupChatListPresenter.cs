@@ -6,7 +6,7 @@ using Message = ChatroomDesktop.Models.Message;
 
 namespace ChatroomDesktop.Presenter;
 
-public class GroupChatListPresenter
+public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
 {
     private readonly IChatService _chatService;
     private readonly INetworkService _networkService;
@@ -14,7 +14,7 @@ public class GroupChatListPresenter
     private UserModel _user;
     private bool _isConnected;
 
-    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService, UserModel user)
+    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService, UserModel user) : base(view)
     {
         _view = view;
         _networkService = networkService;

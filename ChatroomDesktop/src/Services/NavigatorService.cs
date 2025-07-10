@@ -7,18 +7,25 @@ namespace ChatroomDesktop.Services;
 
 public class NavigatorService : INavigatorService
 {
-    public void OpenSignupPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService)
+    private IPresenter _currentPresenter;
+    
+    public void OpenSignupPage(INetworkService networkService, IChatService chatService,
+        INavigatorService navigatorService, IMessageService messageService)
     {
         var signupForm = new SignupForm();
-        var signupPresenter = new SignupPresenter(signupForm, networkService, navigatorService, chatService);
+        _currentPresenter.Destroy();
+        var signupPresenter = new SignupPresenter(signupForm, networkService, navigatorService, chatService,  messageService);
+        _currentPresenter = signupPresenter;
         signupForm.Show();
     }
 
     public void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user)
     {
         var mainView = new GroupChatsForm(chatService);
-        var groupListPrsenter = new GroupChatListPresenter(mainView, networkService, chatService, user);
-        mainView.SetPresenter(groupListPrsenter);
+        var groupListPresenter = new GroupChatListPresenter(mainView, networkService, chatService, user);
+        _currentPresenter.Destroy();
+        mainView.SetPresenter(groupListPresenter);
+        _currentPresenter = groupListPresenter;
         mainView.Show();
     }
 
@@ -27,8 +34,17 @@ public class NavigatorService : INavigatorService
         throw new NotImplementedException();
     }
 
-    public void OpenLoginPage()
+    public void OpenLoginPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService, IMessageService messageService)
     {
-        throw new NotImplementedException();
+        var loginForm = new LoginForm();
+        _currentPresenter.Destroy();
+        var loginPresenter = new LoginPresenter(loginForm, networkService, messageService, navigatorService, chatService);
+        _currentPresenter = loginPresenter;
+        loginForm.Show();
+    }
+
+    public void SetPresenter(IPresenter presenter)
+    {
+        _currentPresenter = presenter;
     }
 }

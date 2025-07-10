@@ -6,12 +6,12 @@ namespace ChatroomDesktop.Services.Interfaces;
 public interface INetworkService
 {
     Task<UserModel?> CheckCredentials(string username, string password);
-    Task SetUpConnection(string username);
+    Task SetUpConnection();
     Task ConnectToServer();
     
     event Action<Message> OnMessageReceived;
 
-    Task<ConnectMessage> SendSignupData(string username, string password);
+    Task<UserModel> SendSignupData(string username, string password);
 
     Task SendMessage(string message);
 
