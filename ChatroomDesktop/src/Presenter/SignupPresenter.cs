@@ -38,7 +38,7 @@ public class SignupPresenter : BasePresenter<ISignupView>
           }
           else
           {
-               MessageBox.Show("Invalid username. Pick another one");
+               _messageService.ShowMessage("Invalid username. Pick another one");
           }
      }
 

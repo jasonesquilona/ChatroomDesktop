@@ -70,6 +70,6 @@ public class LoginPresenterTest
         
         mockView.Raise(v => v.SignUpClicked += null, EventArgs.Empty);
         navigatorService.Verify(ns => ns.OpenSignupPage(mockService.Object, chatService.Object, navigatorService.Object, mockMessageService.Object), Times.Once);
-
+    
     }
 }

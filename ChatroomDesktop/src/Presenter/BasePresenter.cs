@@ -5,11 +5,11 @@ namespace ChatroomDesktop.Presenter;
 
 public abstract class BasePresenter<TView> : IPresenter where TView : class
 {
-    protected TView view;
+    protected TView View;
 
     protected BasePresenter(TView view)
     {
-        this.view = view;
+        this.View = view;
     }
 
     public virtual void Start()
@@ -18,6 +18,6 @@ public abstract class BasePresenter<TView> : IPresenter where TView : class
 
     public virtual void Destroy()
     {
-        view = null;
+        View = null;
     }
 }
