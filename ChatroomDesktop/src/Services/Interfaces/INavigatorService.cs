@@ -10,7 +10,8 @@ public interface INavigatorService
     
     void OpenChatroomPage();
 
-    void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user);
+    void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user,
+        INavigatorService navigatorService, IMessageService messageService);
 
     void OpenLoginPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService,
         IMessageService messageService);

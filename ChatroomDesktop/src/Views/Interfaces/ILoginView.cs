@@ -14,4 +14,5 @@ public interface ILoginView
     void ShowForm();
     
     void HideForm();
+    
 }

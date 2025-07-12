@@ -1,4 +1,5 @@
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Models.EventArgs;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
@@ -11,10 +12,11 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
     private readonly IChatService _chatService;
     private readonly INetworkService _networkService;
     private readonly IGroupChatsView _view;
-    private UserModel _user;
+    private readonly UserModel _user;
     private bool _isConnected;
 
-    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService, UserModel user) : base(view)
+    public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService,
+        UserModel user, INavigatorService navigatorServiceObject, IMessageService messageService) : base(view)
     {
         _view = view;
         _networkService = networkService;
@@ -24,6 +26,7 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         _view.GroupButtonClicked += OnButtonClick;
         _user = user;
         _isConnected = true;
+        _chatService = chatService;
         _view.UpdateButtons(user.Groups);
     }
 
@@ -74,9 +77,9 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         formDialog.Dispose();
     }
 
-    private async void OnButtonClick(object? sender, EventArgs e)
+    private void OnButtonClick(object? sender, GroupButtonEventArgs e)
     {
-        
+        _ = HandleGroupButtonClick(e.GroupName, e.GroupId);
     }
 
     private async Task SendCreateGroupData(string groupName)
@@ -86,6 +89,11 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         
         await _networkService.SendGroupCreationRequest(message);
         
+    }
+
+    private async Task HandleGroupButtonClick(string groupName, string groupId)
+    {
+        await _networkService.ConnectToGroupChat(groupName, groupId, _user);
     }
 
     private bool CheckGroup(string groupCode)

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using ChatroomDesktop.Models;
+using ChatroomDesktop.Models.EventArgs;
 using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Services.Interfaces;
@@ -11,7 +12,7 @@ public partial class GroupChatsForm : Form, IGroupChatsView
 {   
     public event EventHandler? CreateGroupClicked;
     public event EventHandler? JoinGroupClicked;
-    public event EventHandler? GroupButtonClicked;
+    public event EventHandler<GroupButtonEventArgs>? GroupButtonClicked;
 
     private readonly IChatService _chatService;
 
@@ -61,8 +62,12 @@ public partial class GroupChatsForm : Form, IGroupChatsView
                 button.Text = group.GroupName;
                 button.AutoSize = true;
                 button.Tag = group.GroupId;
+                button.Dock = DockStyle.Fill;
 
-                button.Click += (s, e) => GroupButtonClicked?.Invoke(this, EventArgs.Empty);
+                var groupChatEventArgs = new GroupButtonEventArgs();
+                groupChatEventArgs.GroupName = group.GroupName;
+                groupChatEventArgs.GroupId = group.GroupId;
+                button.Click += (s, e) => GroupButtonClicked?.Invoke(this, groupChatEventArgs);
                 groupChatList.Controls.Add(button);
             }
         }

@@ -24,7 +24,7 @@ public class SignupPresenterTest
         mockService.Setup(s => s.SendSignupData("username","password")).ReturnsAsync(user);
         var signupPresenter = new SignupPresenter(mockView.Object, mockService.Object,navigatorService.Object,chatService.Object,mockMessageService.Object);
         mockView.Raise(v => v.EnterClicked += null, EventArgs.Empty);
-        navigatorService.Verify(ns => ns.OpenChatroomListPage(chatService.Object, mockService.Object, user), Times.Once());
+        navigatorService.Verify(ns => ns.OpenChatroomListPage(chatService.Object, mockService.Object, user, navigatorService.Object, mockMessageService.Object), Times.Once());
     }
 
     [Fact]

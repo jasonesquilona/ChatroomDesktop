@@ -64,7 +64,7 @@ public class NetworkService : INetworkService
         
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
-        var connectMessage = JsonSerializer.Deserialize<ConnectMessage>(response,options);
+        var connectMessage = JsonSerializer.Deserialize<LoginConnectMessage>(response,options);
         if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
@@ -197,7 +197,7 @@ public class NetworkService : INetworkService
         int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
-        var connectMessage = JsonSerializer.Deserialize<ConnectMessage>(response,options);
+        var connectMessage = JsonSerializer.Deserialize<LoginConnectMessage>(response,options);
         
         if (connectMessage.Response.StartsWith("201"))
         {
@@ -231,7 +231,13 @@ public class NetworkService : INetworkService
         var joinGroupMessage = JsonSerializer.Deserialize<JoinGroupMessage>(response,options);
         return "";
     }
-    
+
+    public async Task ConnectToGroupChat(string groupName, string groupId, UserModel user)
+    {
+        var stream = _tcpClient.GetStream();
+        var message = new ChatConnectMessage { };
+    }
+
     private static byte[] ConvertToJson(Message messageObj)
     {
         string jsonString = JsonSerializer.Serialize(messageObj);
@@ -241,3 +247,4 @@ public class NetworkService : INetworkService
     }
     
 }
+

@@ -34,7 +34,7 @@ public class SignupPresenter : BasePresenter<ISignupView>
           {
                Console.WriteLine(result);
                _view.HideForm();
-               _navigatorService.OpenChatroomListPage(_chatService, _networkService, result);
+               _navigatorService.OpenChatroomListPage(_chatService, _networkService, result, _navigatorService, _messageService);
           }
           else
           {

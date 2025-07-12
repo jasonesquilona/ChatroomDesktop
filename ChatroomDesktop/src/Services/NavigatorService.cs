@@ -19,10 +19,10 @@ public class NavigatorService : INavigatorService
         signupForm.Show();
     }
 
-    public void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user)
+    public void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user, INavigatorService navigatorService, IMessageService messageService)
     {
         var mainView = new GroupChatsForm(chatService);
-        var groupListPresenter = new GroupChatListPresenter(mainView, networkService, chatService, user);
+        var groupListPresenter = new GroupChatListPresenter(mainView, networkService, chatService, user, navigatorService, messageService);
         _currentPresenter.Destroy();
         mainView.SetPresenter(groupListPresenter);
         _currentPresenter = groupListPresenter;

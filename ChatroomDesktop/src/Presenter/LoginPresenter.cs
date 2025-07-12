@@ -62,7 +62,7 @@ public class LoginPresenter : BasePresenter<ILoginView>
             //var recieve = chatService.ReadyQueue();
             //var listen=  _networkService.HandleIncomingMessages();
             Console.WriteLine("Opening Group Chats Form...");
-            _navigatorService.OpenChatroomListPage(_chatService,_networkService, _user);
+            _navigatorService.OpenChatroomListPage(_chatService,_networkService, _user, _navigatorService, _messageService);
             _view.HideForm();
             ///await Task.WhenAll(listen, recieve);
         }
