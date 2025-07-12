@@ -7,11 +7,11 @@ namespace ChatroomDesktop.Models;
 [JsonDerivedType(typeof(ChatMessage), "CHAT")]
 [JsonDerivedType(typeof(CreateGroupMessage), "CREATEGROUP")]
 [JsonDerivedType(typeof(SignupMessage), "SIGNUP")]
-[JsonDerivedType(typeof(ConnectMessage), "CONNECT")]
+[JsonDerivedType(typeof(LoginConnectMessage), "CONNECT")]
 [JsonDerivedType(typeof(JoinGroupMessage), "JOINGROUP")]
-[JsonDerivedType(typeof(ConfirmGroupJoinMessage), "CONFIRMJOIN")]
+[JsonDerivedType(typeof(ChatConnectMessage), "CHATCONNECT")]
 public abstract class Message
-{
+{ 
 }
 
 public class LoginRequestMessage : Message
@@ -29,6 +29,7 @@ public class SignupMessage :Message
 public class CreateGroupMessage : Message
 {
     public string groupName { get; set; }
+    public int UserId { get; set; }
 }
 public class ChatMessage : Message
 {
@@ -42,13 +43,21 @@ public class ChatMessage : Message
     public string GroupCode {get; set;}
 }
 
-public class ConnectMessage : Message
+public class LoginConnectMessage : Message
 {
     public string Response { get; set; }
     public int Userid {get; set;}
     public string Username {get; set;}
     public List<GroupModel> GroupList {get; set;}
-} 
+}
+
+public class ChatConnectMessage : Message
+{
+    public int Userid {get; set;}
+    public string Username { get; set; }
+    public string GroupCode {get; set;}
+    public string GroupName {get; set;}
+}
 
 public class JoinGroupMessage : Message
 {

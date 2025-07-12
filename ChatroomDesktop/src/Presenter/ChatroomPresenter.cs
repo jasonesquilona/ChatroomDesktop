@@ -29,7 +29,7 @@ public class ChatroomPresenter
 
     private void OnFormClosed(object? sender, EventArgs e)
     {
-        _chatService.CloseConnection();
+        _ = _chatService.CloseConnection();
     }
 
     private async void HandleNewMessage(ChatMessage obj)

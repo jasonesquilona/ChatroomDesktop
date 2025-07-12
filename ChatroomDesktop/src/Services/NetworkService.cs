@@ -140,6 +140,7 @@ public class NetworkService : INetworkService
 
     public async Task<bool> SendGroupCreationRequest(CreateGroupMessage message)
     {
+        message.UserId = _userModel.UserId;
         var data = ConvertToJson(message);
         var stream = _tcpClient.GetStream();
         await _sendLock.WaitAsync();
@@ -202,11 +203,10 @@ public class NetworkService : INetworkService
         if (connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Logged in!");
-            UserModel userModel = new UserModel();
-            userModel.Username = username;
-            userModel.Groups = connectMessage.GroupList;
-            userModel.UserId = connectMessage.Userid;
-            return userModel;
+            _userModel.Username = username;
+            _userModel.Groups = connectMessage.GroupList;
+            _userModel.UserId = connectMessage.Userid;
+            return _userModel;
         }
         else
         {
@@ -215,27 +215,37 @@ public class NetworkService : INetworkService
         }
     }
 
-    public async Task<string> SendJoinGroupRequest(UserModel userModel, string groupCode)
+    public async Task<ConfirmGroupJoinMessage?> SendJoinGroupRequest(UserModel userModel, string groupCode)
     {
         var stream = _tcpClient.GetStream();
         var message = new JoinGroupMessage {UserId = userModel.UserId, GroupCode = groupCode};
         
         Console.WriteLine("Sending JoinGroupRequest to Server...");
         var data = ConvertToJson(message);
-        await stream.WriteAsync(data, 0, data.Length);
-        byte[] responseBuffer = new byte[1024];
-        int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
-        Console.WriteLine($"{bytesRead} bytes");
-        string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        await stream.WriteAsync(data);
+        var responseBuffer = new byte[1024];
+        var bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
+        var response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
-        var joinGroupMessage = JsonSerializer.Deserialize<JoinGroupMessage>(response,options);
-        return "";
+        var joinGroupMessage = JsonSerializer.Deserialize<ConfirmGroupJoinMessage>(response,options);
+        if (joinGroupMessage != null && joinGroupMessage.Response.StartsWith("201"))
+        {
+            return joinGroupMessage;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public async Task ConnectToGroupChat(string groupName, string groupId, UserModel user)
     {
         var stream = _tcpClient.GetStream();
-        var message = new ChatConnectMessage { };
+        var message = new ChatConnectMessage {GroupName = groupName, GroupCode = groupId, Username = user.Username, Userid = user.UserId};
+        Console.WriteLine("Sending ChatConnectMessage to Server...");
+        await stream.WriteAsync(ConvertToJson(message));
+        var responseBuffer = new byte[1024];
+        
     }
 
     private static byte[] ConvertToJson(Message messageObj)

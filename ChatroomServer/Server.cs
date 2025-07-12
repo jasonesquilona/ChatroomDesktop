@@ -108,7 +108,7 @@ public class Server
     private async Task<bool> HandleJoinGroup(JoinGroupMessage joinGroupMsg, NetworkStream stream)
     {
 
-        const string sql = @"INSERT INTO ChatSchema.UserGroup (UserId, GroupCode,GroupName) " +
+        const string sql = "INSERT INTO ChatSchema.UserGroup (UserId, GroupCode,GroupName) " +
                            "OUTPUT inserted.GroupName "+
                            "SELECT @UserId, @GroupCode, Name " +
                            "FROM ChatSchema.Groups as g " +
@@ -127,7 +127,6 @@ public class Server
         string jsonString = JsonSerializer.Serialize(confirmMessage);
         Console.WriteLine($"Message received: {jsonString}");
         
-                    
         await SendResponseMessage(jsonString, stream);
         return success;
     }
@@ -170,9 +169,9 @@ public class Server
         return success;
     }
 
-    private async Task<ClientModel?> HandleConnectClient(TcpClient clientID, ConnectMessage message)
+    private async Task<ClientModel?> HandleConnectClient(TcpClient clientID, JoinGroupMessage message)
     {
-        return new ClientModel(clientID, message.Username);
+        return null;
     }
     
     private async Task HandleSignup(SignupMessage message, NetworkStream stream)
@@ -199,16 +198,19 @@ public class Server
         
         await SendResponseMessage(jsonString, stream);
     }
-    
+
     private async Task<bool> HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)
     {
         var groupName = createGroupMsg.groupName;
         var response = false;
-        const string sql = "INSERT INTO ChatSchema.Groups (Name, Code)  VALUES (@Name, @Code)";
-        for (var i = 0; i < 5; i++)
+        const string sql = "INSERT INTO ChatSchema.Groups (Name, Code) "+
+                           "VALUES (@Name, @Code); "+
+                           "INSERT INTO ChatSchema.UserGroup (GroupName, GroupCode, UserID)" +
+                           "VALUES (@Name, @Code, @UserID); ";
+        for (var i = 0; i < 1; i++)
         {
             var groupCode = Util.GenrateRandomString();
-            response = _sqlOperations.SendNewGroup(sql, groupName, groupCode);
+            response = _sqlOperations.SendCreateNewGroup(sql, groupName, groupCode, createGroupMsg.UserId);
             if (response)
             {
                 break;

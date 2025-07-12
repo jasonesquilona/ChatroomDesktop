@@ -13,14 +13,18 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
     private readonly INetworkService _networkService;
     private readonly IGroupChatsView _view;
     private readonly UserModel _user;
+    private readonly INavigatorService _navigatorService;
+    private readonly IMessageService _messageService;
     private bool _isConnected;
 
     public GroupChatListPresenter(IGroupChatsView view, INetworkService networkService, IChatService chatService,
-        UserModel user, INavigatorService navigatorServiceObject, IMessageService messageService) : base(view)
+        UserModel user, INavigatorService navigatorService, IMessageService messageService) : base(view)
     {
         _view = view;
         _networkService = networkService;
         _chatService = chatService;
+        _navigatorService = navigatorService;
+        _messageService = messageService;
         _view.CreateGroupClicked += OnCreateGroupClicked;
         _view.JoinGroupClicked += OnJoinGroupClicked;
         _view.GroupButtonClicked += OnButtonClick;
@@ -56,13 +60,22 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
                 if (CheckGroup(groupCode))
                 {
                     groupCode = formDialog.GroupNameEntered;
-                    string groupName = await _networkService.SendJoinGroupRequest(_user, groupCode);
-                    Console.WriteLine($"joined {groupCode}");
+                    var groupInfo = await _networkService.SendJoinGroupRequest(_user, groupCode);
+                    if (groupInfo != null)
+                    {
+                        Console.WriteLine($"joined {groupCode}");
+                        _user.AddNewGroup(groupInfo);
+                        _view.UpdateButtons(_user.Groups);
+                    }
+                    else
+                    {
+                        _messageService.ShowMessage("Error Joining Group, Try Again");
+                    }
                     formDialog.Dispose();
                 }
                 else
                 {
-                    MessageBox.Show("You are already apart of this group");
+                    _messageService.ShowMessage("You are already apart of this group");
                 }
             }
             else

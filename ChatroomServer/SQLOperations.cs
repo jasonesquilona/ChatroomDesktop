@@ -14,13 +14,13 @@ public class SQLOperations
     {
         
     }
-    public async Task<(ConnectMessage,bool)> SendSQLSignup(string sql, SignupMessage? message)
+    public async Task<(LoginConnectMessage,bool)> SendSQLSignup(string sql, SignupMessage? message)
     {
         var name = message.Username;
         var password = message.Password;
         bool success = true;
         SqlDataReader result;
-        ConnectMessage connectMessage = new ConnectMessage();
+        LoginConnectMessage connectMessage = new LoginConnectMessage();
         try
         {
             using (SqlConnection sqlConnection = new SqlConnection(this.connectionString))
@@ -82,15 +82,15 @@ public class SQLOperations
         return (connectMessage, success);
     }
 
-    public async Task<(ConnectMessage, string, bool)> SendSQLLogin(string sql, LoginRequestMessage? message)
+    public async Task<(LoginConnectMessage, string, bool)> SendSQLLogin(string sql, LoginRequestMessage? message)
     {
         var name = message.Username;
         string password = null;
         bool success = true;
-        SqlDataReader result;
-        ConnectMessage connectMessage = new ConnectMessage();
+        LoginConnectMessage connectMessage = new LoginConnectMessage();
         using (SqlConnection sqlConnection = new SqlConnection(connectionString))
         {
+            SqlDataReader result;
             lock (_sqlLock)
             {
                 Console.WriteLine($"Checking Login Request to Server");
@@ -152,7 +152,7 @@ public class SQLOperations
 
     }
 
-    public bool SendNewGroup(String sql, string groupName, string groupCode)
+    public bool SendCreateNewGroup(String sql, string groupName, string groupCode, int userId)
     {
         object result;
         lock (_sqlLock)
@@ -180,6 +180,7 @@ public class SQLOperations
                             Console.WriteLine("New Command");
                             sqlCommand.Parameters.Add("@Name", System.Data.SqlDbType.VarChar).Value = groupName;
                             sqlCommand.Parameters.Add("@Code", System.Data.SqlDbType.VarChar).Value = groupCode;
+                            sqlCommand.Parameters.Add("UserID", System.Data.SqlDbType.Int).Value = userId;
                             Console.WriteLine("Executing Command");
                             result = sqlCommand.ExecuteNonQuery();
                         }
