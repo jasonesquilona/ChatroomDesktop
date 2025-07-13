@@ -65,7 +65,7 @@ public class NetworkService : INetworkService
         string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
         var connectMessage = JsonSerializer.Deserialize<LoginConnectMessage>(response,options);
-        if (connectMessage.Response.StartsWith("201"))
+        if (connectMessage != null && connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Signed up!");
             _userModel.UserId = connectMessage.Userid;
@@ -138,7 +138,7 @@ public class NetworkService : INetworkService
        }
     }
 
-    public async Task<bool> SendGroupCreationRequest(CreateGroupMessage message)
+    public async Task<ConfirmGroupJoinMessage> SendGroupCreationRequest(CreateGroupMessage message)
     {
         message.UserId = _userModel.UserId;
         var data = ConvertToJson(message);
@@ -147,16 +147,17 @@ public class NetworkService : INetworkService
         await stream.WriteAsync(data, 0, data.Length);
         byte[] responseBuffer = new byte[1024]; // Adjust size as needed
         int bytesRead = await stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
-        
-        string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
-        if (response.StartsWith("201"))
+        var response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
+        var connectMessage = JsonSerializer.Deserialize<ConfirmGroupJoinMessage>(response,options);
+        if (connectMessage != null && connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Group Created");
-            return true;
+            return connectMessage;
         }
         else
         {
-            return false;
+            return null;
         }
     }
 
@@ -200,7 +201,7 @@ public class NetworkService : INetworkService
         JsonSerializerOptions options =new() { AllowOutOfOrderMetadataProperties = true };
         var connectMessage = JsonSerializer.Deserialize<LoginConnectMessage>(response,options);
         
-        if (connectMessage.Response.StartsWith("201"))
+        if (connectMessage != null && connectMessage.Response.StartsWith("201"))
         {
             Console.WriteLine("Logged in!");
             _userModel.Username = username;

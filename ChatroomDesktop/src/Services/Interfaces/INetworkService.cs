@@ -15,7 +15,7 @@ public interface INetworkService
 
     Task SendMessage(string message);
 
-    Task<bool> SendGroupCreationRequest(CreateGroupMessage message);
+    Task<ConfirmGroupJoinMessage> SendGroupCreationRequest(CreateGroupMessage message);
 
     void CloseConnection();
 

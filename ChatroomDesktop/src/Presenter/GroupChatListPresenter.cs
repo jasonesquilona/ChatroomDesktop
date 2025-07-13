@@ -100,7 +100,16 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         var message = new CreateGroupMessage();
         message.groupName = groupName;
         
-        await _networkService.SendGroupCreationRequest(message);
+        var success = await _networkService.SendGroupCreationRequest(message);
+        if (success != null)
+        {
+            _user.AddNewGroup(success);
+            _view.UpdateButtons(_user.Groups);
+        }
+        else
+        {
+            _messageService.ShowMessage("Group Creation Failed");
+        }
         
     }
 

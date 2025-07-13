@@ -199,7 +199,7 @@ public class Server
         await SendResponseMessage(jsonString, stream);
     }
 
-    private async Task<bool> HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)
+    private async Task HandleCreateGroup(CreateGroupMessage createGroupMsg, NetworkStream stream)
     {
         var groupName = createGroupMsg.groupName;
         var response = false;
@@ -207,28 +207,27 @@ public class Server
                            "VALUES (@Name, @Code); "+
                            "INSERT INTO ChatSchema.UserGroup (GroupName, GroupCode, UserID)" +
                            "VALUES (@Name, @Code, @UserID); ";
+        string groupCode = "";
         for (var i = 0; i < 1; i++)
         {
-            var groupCode = Util.GenrateRandomString();
+            groupCode = Util.GenrateRandomString();
             response = _sqlOperations.SendCreateNewGroup(sql, groupName, groupCode, createGroupMsg.UserId);
             if (response)
             {
                 break;
             }
         }
-
-        var responseMessage = "";
+        var responseMessage = new ConfirmGroupJoinMessage {GroupName = groupName, GroupCode = groupCode};
         if (response)
         {
-            responseMessage = "201 User registered";
-            await SendResponseMessage(responseMessage, stream);
+            responseMessage.Response = "201 User registered";
         }
         else
         {
-            responseMessage = "400 Bad Request";
-            await SendResponseMessage(responseMessage, stream);
+            responseMessage.Response = "400 Bad Request";
         }
-        return response;
+        string jsonString = JsonSerializer.Serialize(responseMessage);
+        await SendResponseMessage(jsonString, stream);
     }
 
 
