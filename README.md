@@ -7,8 +7,8 @@ I was slow implementing unit test in this project and I wasnt able to implement 
 
 
 # Areas of Improvement
--Code Cleanliness
--Better Unit Testing and learning how to create more powerful unit tests
--Better Comments to improve readability
--Improve planning when it comes to implementing new features
--Expand on learning how to make better OOP code
+- Code Cleanliness
+- Better Unit Testing and learning how to create more powerful unit tests
+- Better Comments to improve readability
+- Improve planning when it comes to implementing new features
+- Expand on learning how to make better OOP code
