@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using ChatroomServer.Models;
 
 namespace ChatServer;
 
@@ -13,19 +14,18 @@ public class ClientModel
         set{} 
     }
 
-    private string name;
+    private UserDetails details;
     
-    public string Name
+    public UserDetails Details
     {
-        get { return this.name;} 
+        get { return this.details; ;} 
         set{}
     }
-  
 
-    public ClientModel(TcpClient tcpClient, string name)
+    public ClientModel(TcpClient tcpClient, UserDetails details)
     {
         this.clientID = tcpClient;
-        this.name = name;
+        this.details = details;
     }
     
     

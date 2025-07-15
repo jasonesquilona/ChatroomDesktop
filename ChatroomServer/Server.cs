@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Utilities;
+using ChatroomServer.Models;
 
 namespace ChatServer;
 
@@ -15,6 +16,7 @@ public class Server
     private List<TcpClient> _tcpClients = new List<TcpClient>();
     private object _clientsLock = new object();
     private SQLOperations _sqlOperations;
+    private ActiveGroups _activeGroups;
     
     private Lock _databasesLock = new Lock();
     public Server(IPAddress ip)
@@ -22,6 +24,7 @@ public class Server
         var ipEndPoint = new IPEndPoint(ip, 8080);
         _tcpListener = new TcpListener(ipEndPoint);
         _sqlOperations = new SQLOperations();
+        _activeGroups = new ActiveGroups();
     }
 
     public async Task ListenForClients()
@@ -68,7 +71,7 @@ public class Server
                                 //client = await HandleJoinClient(clientID, chatMsg);
                                 break;
                             case "CHAT":
-                                await HandleChatMessage(client, chatMsg);
+                                //await HandleChatMessage(client, chatMsg);
                                 break;
                         }
 
@@ -76,12 +79,13 @@ public class Server
                     case LoginRequestMessage loginMsg:
                     {
                         var result = await HandleLogin(loginMsg, stream);
-                        if (result != true) continue;
-                        client = new ClientModel(clientId, loginMsg.Username);
+                        if (result != null) continue;
+                        var details = new UserDetails { UserId = result.Userid, Username = result.Username };
+                        client = new ClientModel(clientId, details);
                         lock(_clientsLock){
                             _loggedInClients.Add(client);
                         }
-                        Console.WriteLine($"Client logged in: {client.Name}");
+                        Console.WriteLine($"Client logged in: {client.Details.Username}");
                         break;
                     }
                     case CreateGroupMessage createGroupMsg:
@@ -90,6 +94,11 @@ public class Server
                     case JoinGroupMessage joinGroupMsg:
                     {
                         var result = await HandleJoinGroup(joinGroupMsg, stream);
+                        break;
+                    }
+                    case ChatConnectMessage chatConnectMsg:
+                    {
+                        await HandleConnectClient(chatConnectMsg, stream, clientId);
                         break;
                     }
                 }
@@ -133,13 +142,9 @@ public class Server
 
     private async Task HandleChatMessage(ClientModel? client, ChatMessage message)
     {
-        if(client != null){
-            var messageObj = new ChatMessage {ChatType = "CHAT", Sender = message.Sender, chatMessage = message.chatMessage, UserList = GetUserList()};
-            await BroadcastMessage(messageObj);
-        }
     }
 
-    private async Task<bool> HandleLogin(LoginRequestMessage requestMessage, NetworkStream stream)
+    private async Task<LoginConnectMessage> HandleLogin(LoginRequestMessage requestMessage, NetworkStream stream)
     {
         const string sql = @"SELECT u.id AS user_id, u.password AS password, g.name AS group_name, g.Code AS group_code " +
                             "FROM ChatSchema.Users AS u " +
@@ -166,12 +171,25 @@ public class Server
         
                     
         await SendResponseMessage(jsonString, stream);
-        return success;
+        return connectMessage;
     }
 
-    private async Task<ClientModel?> HandleConnectClient(TcpClient clientID, JoinGroupMessage message)
+    private async Task HandleConnectClient(ChatConnectMessage clientConnectMessage, NetworkStream stream,
+        TcpClient tcpClient)
     {
-        return null;
+        var details = new UserDetails{UserId = clientConnectMessage.Userid, Username = clientConnectMessage.Username};
+        var clientModel = new ClientModel(tcpClient,details);
+        var groupCode = clientConnectMessage.GroupCode;
+        var responseMessage = "";
+        if (_activeGroups.AddEntry(clientConnectMessage.GroupCode, clientModel))
+        {
+            responseMessage = "201 Client Connected";
+        }
+        else
+        {
+            responseMessage = "401 Unauthorized";
+        }
+        await SendResponseMessage(responseMessage, stream);
     }
     
     private async Task HandleSignup(SignupMessage message, NetworkStream stream)
@@ -250,7 +268,7 @@ public class Server
             foreach (var client in _loggedInClients)
             {
                 var clientId = client?.ClientID;
-                var name = client?.Name;
+                var name = client?.Details.Username;
                 var stream = clientId?.GetStream();
                 Console.WriteLine($"Sending message: {message.chatMessage} to {clientId?.Client.RemoteEndPoint} | {name}");
                 stream?.Write(messageBytes, 0, messageBytes.Length);
@@ -275,7 +293,7 @@ public class Server
     {
         lock (_clientsLock)
         {
-            return _loggedInClients.Select(clientName => clientName.Name).ToArray();
+            return _loggedInClients.Select(clientName => clientName.Details.Username).ToArray();
         }
     }
 

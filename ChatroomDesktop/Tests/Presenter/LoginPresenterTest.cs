@@ -3,6 +3,7 @@ using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services;
 using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
+using ChatroomServer.Models;
 using Moq;
 
 namespace ChatroomDesktop.Tests.Presenter;
@@ -18,7 +19,8 @@ public class LoginPresenterTest
         var mockMessageService = new Mock<IMessageService>();
         var navigatorService = new Mock<INavigatorService>();
         var chatService = new Mock<IChatService>();
-        var user = new UserModel {Username = "test", UserId = 123, Groups = new List<GroupModel>()};
+        var userDetails = new UserDetails { UserId = 123, Username = "test" };
+        var user = new UserModel {Details = userDetails, Groups = new List<GroupModel>()};
         mockView.Setup(v => v.Name).Returns("test");
         mockView.Setup(v => v.Password).Returns("password");
         mockService.Setup(s => s.CheckCredentials("test", "password")).ReturnsAsync(user);

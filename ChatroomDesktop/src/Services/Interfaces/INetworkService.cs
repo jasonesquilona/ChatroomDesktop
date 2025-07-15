@@ -20,5 +20,5 @@ public interface INetworkService
     void CloseConnection();
 
     Task<ConfirmGroupJoinMessage?> SendJoinGroupRequest(UserModel userModel, string groupCode);
-    Task ConnectToGroupChat(string groupName, string groupId, UserModel user);
+    Task<bool> ConnectToGroupChat(string groupName, string groupId, UserModel user);
 }

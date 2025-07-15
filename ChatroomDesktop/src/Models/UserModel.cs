@@ -1,12 +1,13 @@
+using ChatroomServer.Models;
+
 namespace ChatroomDesktop.Models;
 
 public class UserModel
 {
-    public string Username { get; set; }
 
+    public UserDetails Details { get; set; }
     public List<GroupModel> Groups { get; set; }
     
-    public int UserId { get; set; }
 
     public void AddNewGroup(ConfirmGroupJoinMessage? groupInfo)
     {

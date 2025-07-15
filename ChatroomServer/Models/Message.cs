@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ChatroomServer.Models;
 
 namespace ChatroomDesktop.Models;
 
@@ -33,12 +34,12 @@ public class CreateGroupMessage : Message
 }
 public class ChatMessage : Message
 {
-    public string Sender {get; set;}
+    public UserDetails Sender {get; set;}
     
     public string ChatType {get; set;}
     public string chatMessage {get; set;}
     
-    public string[] UserList {get; set;}
+    public List<UserDetails> UserList {get; set;}
     
     public string GroupCode {get; set;}
 }

@@ -115,7 +115,11 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
 
     private async Task HandleGroupButtonClick(string groupName, string groupId)
     {
-        await _networkService.ConnectToGroupChat(groupName, groupId, _user);
+        var result = await _networkService.ConnectToGroupChat(groupName, groupId, _user);
+        if (result)
+        {
+            _navigatorService.OpenChatroomPage();
+        }
     }
 
     private bool CheckGroup(string groupCode)

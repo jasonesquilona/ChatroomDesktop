@@ -54,7 +54,7 @@ public class LoginPresenter : BasePresenter<ILoginView>
         try
         {
             this._user = user;
-            Console.WriteLine(_user.Username);
+            Console.WriteLine(_user.Details.UserId);
             await _networkService.SetUpConnection();
             
             //var mainView = new ChatroomForm();

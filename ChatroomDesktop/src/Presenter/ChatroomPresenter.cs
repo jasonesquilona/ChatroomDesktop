@@ -39,7 +39,7 @@ public class ChatroomPresenter
 
     private async void HandleNewUser(ChatMessage obj)
     {
-        _view.AddNewUser(obj.UserList);
+        //_view.AddNewUser(obj.UserList);
     }
 
     private async void OnEnterClicked(object? sender, EventArgs e)

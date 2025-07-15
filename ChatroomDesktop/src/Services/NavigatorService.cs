@@ -31,7 +31,6 @@ public class NavigatorService : INavigatorService
 
     public void OpenChatroomPage()
     {
-        throw new NotImplementedException();
     }
 
     public void OpenLoginPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService, IMessageService messageService)

@@ -6,6 +6,7 @@ using System.Text.Json;
 using ChatroomDesktop.Models;
 using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Utilities;
+using ChatroomServer.Models;
 using Microsoft.VisualBasic.CompilerServices;
 using Message = ChatroomDesktop.Models.Message;
 
@@ -67,9 +68,9 @@ public class NetworkService : INetworkService
         var connectMessage = JsonSerializer.Deserialize<LoginConnectMessage>(response,options);
         if (connectMessage != null && connectMessage.Response.StartsWith("201"))
         {
+            var details = new UserDetails {UserId = connectMessage.Userid, Username = connectMessage.Username};
             Console.WriteLine("Signed up!");
-            _userModel.UserId = connectMessage.Userid;
-            _userModel.Username = connectMessage.Username;
+            _userModel.Details = details;
             _userModel.Groups = connectMessage.GroupList;
             return _userModel;
         }
@@ -122,7 +123,7 @@ public class NetworkService : INetworkService
 
     public async Task SendMessage(string message)
     {
-       var messageObj = new ChatMessage{ChatType = "CHAT", Sender = _userModel.Username, chatMessage = message};
+       var messageObj = new ChatMessage{ChatType = "CHAT", Sender = _userModel.Details, chatMessage = message};
        var data = ConvertToJson(messageObj);
        var stream = _tcpClient.GetStream();
        await _sendLock.WaitAsync();
@@ -140,7 +141,7 @@ public class NetworkService : INetworkService
 
     public async Task<ConfirmGroupJoinMessage> SendGroupCreationRequest(CreateGroupMessage message)
     {
-        message.UserId = _userModel.UserId;
+        message.UserId = _userModel.Details.UserId;
         var data = ConvertToJson(message);
         var stream = _tcpClient.GetStream();
         await _sendLock.WaitAsync();
@@ -203,10 +204,10 @@ public class NetworkService : INetworkService
         
         if (connectMessage != null && connectMessage.Response.StartsWith("201"))
         {
+            var details = new UserDetails {UserId = connectMessage.Userid, Username = connectMessage.Username};
             Console.WriteLine("Logged in!");
-            _userModel.Username = username;
             _userModel.Groups = connectMessage.GroupList;
-            _userModel.UserId = connectMessage.Userid;
+            _userModel.Details = details;
             return _userModel;
         }
         else
@@ -219,7 +220,7 @@ public class NetworkService : INetworkService
     public async Task<ConfirmGroupJoinMessage?> SendJoinGroupRequest(UserModel userModel, string groupCode)
     {
         var stream = _tcpClient.GetStream();
-        var message = new JoinGroupMessage {UserId = userModel.UserId, GroupCode = groupCode};
+        var message = new JoinGroupMessage {UserId = userModel.Details.UserId, GroupCode = groupCode};
         
         Console.WriteLine("Sending JoinGroupRequest to Server...");
         var data = ConvertToJson(message);
@@ -239,14 +240,23 @@ public class NetworkService : INetworkService
         }
     }
 
-    public async Task ConnectToGroupChat(string groupName, string groupId, UserModel user)
+    public async Task<bool> ConnectToGroupChat(string groupName, string groupId, UserModel user)
     {
-        var stream = _tcpClient.GetStream();
-        var message = new ChatConnectMessage {GroupName = groupName, GroupCode = groupId, Username = user.Username, Userid = user.UserId};
+        var stream = _tcpClient.GetStream(); 
+        var message = new ChatConnectMessage {GroupName = groupName, GroupCode = groupId, Username = user.Details.Username, Userid = user.Details.UserId};
         Console.WriteLine("Sending ChatConnectMessage to Server...");
         await stream.WriteAsync(ConvertToJson(message));
         var responseBuffer = new byte[1024];
-        
+        var bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
+        var response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+        if (response.StartsWith("201"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     private static byte[] ConvertToJson(Message messageObj)

@@ -4,6 +4,7 @@ using ChatroomDesktop.Models.EventArgs;
 using ChatroomDesktop.Presenter;
 using ChatroomDesktop.Services.Interfaces;
 using ChatroomDesktop.Views;
+using ChatroomServer.Models;
 using Moq;
 using Xunit;
 
@@ -19,8 +20,9 @@ public class GroupChatListPresenterTest
         var mockMessageService = new Mock<IMessageService>();
         var navigatorService = new Mock<INavigatorService>();
         var chatService = new Mock<IChatService>();
+        var userDetails = new UserDetails { UserId = 123, Username = "test" };
         
-        var user = new UserModel {Username = "test", UserId = 123, Groups = {new GroupModel{GroupName = "test", GroupId = "1A2B3"} }};
+        var user = new UserModel {Details = userDetails, Groups = {new GroupModel{GroupName = "test", GroupId = "1A2B3"} }};
         
         var groupChatListPresenter = new GroupChatListPresenter(mockView.Object, mockService.Object, chatService.Object, user,navigatorService.Object, mockMessageService.Object);
 
