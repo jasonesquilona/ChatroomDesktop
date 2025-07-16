@@ -88,7 +88,7 @@ public class ChatService : IChatService
         Console.WriteLine("Closing connection");
         _networkService.CloseConnection();
         _cts.Cancel();
-        //await _sendingTask;
+        await _sendingTask;
         _cts.Dispose();
     }
 

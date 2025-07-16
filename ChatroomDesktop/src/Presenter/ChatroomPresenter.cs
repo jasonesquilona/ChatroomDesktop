@@ -42,6 +42,7 @@ public class ChatroomPresenter : BasePresenter<IChatroomView>
         var chatMessage = new ChatMessage{ChatType = "JOIN", chatMessage = "", GroupCode = _chatModel.GroupId};
         await _networkService.SendMessage(chatMessage);
         await Task.WhenAll(listen, recieve);
+        Application.Exit();
     }
 
     private void OnFormClosed(object? sender, EventArgs e)
