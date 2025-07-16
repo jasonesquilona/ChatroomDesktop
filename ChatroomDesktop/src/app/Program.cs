@@ -29,7 +29,6 @@ static class Program
         NetworkService networkService = new NetworkService();
         MessageService messageService = new MessageService();
         ChatService chatService = new ChatService(networkService);
-        //await networkService.ConnectToServer();
         var navigatorService = new NavigatorService();
         var presenter = new LoginPresenter(view,networkService, messageService, navigatorService, chatService);
         navigatorService.SetPresenter(presenter);

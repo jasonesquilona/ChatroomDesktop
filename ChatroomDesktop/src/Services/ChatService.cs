@@ -11,7 +11,7 @@ public class ChatService : IChatService
 
     private SemaphoreSlim _sendLock;
     
-    private Queue<string> _chatQueue = new Queue<string>();
+    private Queue<ChatMessage> _chatQueue = new Queue<ChatMessage>();
     
     private CancellationTokenSource _cts;
     
@@ -29,16 +29,16 @@ public class ChatService : IChatService
         _cts = new CancellationTokenSource();
     }
 
-    public void HandleUserInput(string input)
+    public void HandleUserInput(ChatMessage message)
     {
-            _chatQueue.Enqueue(input);
+            _chatQueue.Enqueue(message);
             _sendLock.Release();
     }
 
     public async Task ReadyQueue()
     {
         _sendingTask = ProcessQueue(_cts.Token);
-        Console.WriteLine("Queue has Closed");
+        //Console.WriteLine("Queue has Closed");
     }
 
     private void ReceiveMessage(Message message)
@@ -68,6 +68,7 @@ public class ChatService : IChatService
         while (!token.IsCancellationRequested)
         {
             await _sendLock.WaitAsync(token);
+            Console.WriteLine("New message received");
             if (_chatQueue.TryDequeue(out var message))
             {
                 await SendMessage(message);
@@ -76,7 +77,7 @@ public class ChatService : IChatService
         Console.WriteLine("Token Canceled");
     }
 
-    private async Task SendMessage(string message)
+    private async Task SendMessage(ChatMessage message)
     {
         Console.WriteLine($"Chat Service: Sending message: {message}");
         await _networkService.SendMessage(message);

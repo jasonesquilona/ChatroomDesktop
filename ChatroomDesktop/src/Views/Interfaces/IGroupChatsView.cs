@@ -11,4 +11,5 @@ public interface IGroupChatsView
     event EventHandler<GroupButtonEventArgs>? GroupButtonClicked;
 
     void UpdateButtons(List<GroupModel> groups);
+    public void HideForm();
 }

@@ -50,6 +50,7 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
     private async void OnJoinGroupClicked(object? sender, EventArgs e)
     {
         string groupCode = "";
+        Console.WriteLine("Join Group Form Entered");
         GroupCreationForm formDialog= new GroupCreationForm();
         formDialog.ChangeLabelText("Enter Group Code");
         formDialog.ChangeTextLength(5);
@@ -57,9 +58,9 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         {
             if (formDialog.ShowDialog() == DialogResult.OK)
             {
-                if (CheckGroup(groupCode))
+                groupCode = formDialog.GroupNameEntered;
+                if (!CheckGroup(groupCode))
                 {
-                    groupCode = formDialog.GroupNameEntered;
                     var groupInfo = await _networkService.SendJoinGroupRequest(_user, groupCode);
                     if (groupInfo != null)
                     {
@@ -118,8 +119,14 @@ public class GroupChatListPresenter : BasePresenter<IGroupChatsView>
         var result = await _networkService.ConnectToGroupChat(groupName, groupId, _user);
         if (result)
         {
-            _navigatorService.OpenChatroomPage();
+            await HandleNewChat(groupId);
+            _view.HideForm();
         }
+    }
+
+    private async Task HandleNewChat(string groupId)
+    {
+        await _navigatorService.OpenChatroomPage(_chatService, _networkService, _user, _navigatorService, _messageService, groupId);
     }
 
     private bool CheckGroup(string groupCode)

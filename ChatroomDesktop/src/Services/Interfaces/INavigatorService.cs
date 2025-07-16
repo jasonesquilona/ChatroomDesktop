@@ -8,7 +8,8 @@ public interface INavigatorService
     void OpenSignupPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService,
         IMessageService messageService);
     
-    void OpenChatroomPage();
+    Task OpenChatroomPage(IChatService chatService, INetworkService networkService, UserModel user,
+        INavigatorService navigatorService, IMessageService messageService, string groupId);
 
     void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user,
         INavigatorService navigatorService, IMessageService messageService);

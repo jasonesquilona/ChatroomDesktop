@@ -91,10 +91,11 @@ public class NetworkService : INetworkService
             while (_cts.Token.IsCancellationRequested == false)
             {
                 var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, _cts.Token);
+                Console.WriteLine($"Received {bytesRead} bytes");
                 if (bytesRead > 0)
                 {
                     var jsonString = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    Message message = JsonSerializer.Deserialize<Message>(jsonString);
+                    ChatMessage message = JsonSerializer.Deserialize<ChatMessage>(jsonString);
                     OnMessageReceived?.Invoke(message);
                 }
             }
@@ -121,9 +122,10 @@ public class NetworkService : INetworkService
         Console.WriteLine("Connection has been fully closed");
     }
 
-    public async Task SendMessage(string message)
-    {
-       var messageObj = new ChatMessage{ChatType = "CHAT", Sender = _userModel.Details, chatMessage = message};
+    public async Task SendMessage(ChatMessage message)
+    { 
+        var messageObj = message;
+        messageObj.Sender = _userModel.Details;
        var data = ConvertToJson(messageObj);
        var stream = _tcpClient.GetStream();
        await _sendLock.WaitAsync();
@@ -251,7 +253,7 @@ public class NetworkService : INetworkService
         var response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
         if (response.StartsWith("201"))
         {
-            return true;
+            return true ;
         }
         else
         {

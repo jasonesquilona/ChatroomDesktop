@@ -12,7 +12,7 @@ public abstract class BasePresenter<TView> : IPresenter where TView : class
         this.View = view;
     }
 
-    public virtual void Start()
+    public virtual async Task Start()
     {
     }
 

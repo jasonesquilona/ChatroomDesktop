@@ -19,6 +19,17 @@ public class NavigatorService : INavigatorService
         signupForm.Show();
     }
 
+    public async Task OpenChatroomPage(IChatService chatService, INetworkService networkService, UserModel user,
+        INavigatorService navigatorService, IMessageService messageService, string groupId)
+    {
+        var chatroomForm = new ChatroomForm();
+        _currentPresenter.Destroy();
+        var chatroomPresenter = new ChatroomPresenter(chatroomForm, networkService, navigatorService, chatService, user, messageService, groupId);
+        _ = chatroomPresenter.Start();
+        _currentPresenter = chatroomPresenter;
+        chatroomForm.Show();
+    }
+
     public void OpenChatroomListPage(IChatService chatService, INetworkService networkService, UserModel user, INavigatorService navigatorService, IMessageService messageService)
     {
         var mainView = new GroupChatsForm(chatService);
@@ -28,10 +39,7 @@ public class NavigatorService : INavigatorService
         _currentPresenter = groupListPresenter;
         mainView.Show();
     }
-
-    public void OpenChatroomPage()
-    {
-    }
+    
 
     public void OpenLoginPage(INetworkService networkService, IChatService chatService, INavigatorService navigatorService, IMessageService messageService)
     {

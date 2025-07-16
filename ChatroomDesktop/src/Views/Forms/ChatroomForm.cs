@@ -1,3 +1,5 @@
+using ChatroomServer.Models;
+
 namespace ChatroomDesktop.Views;
 
 public partial class ChatroomForm : Form, IChatroomView
@@ -18,14 +20,14 @@ public partial class ChatroomForm : Form, IChatroomView
         chatText.Text += message+ Environment.NewLine;
     }
 
-    public void AddNewUser(string[] usernames)
+    public void AddNewUser(List<UserDetails> usernames)
     {
         if (memberList.Text.Length != 0) {
             memberList.Clear();
         }
         
         foreach (var user in usernames) {
-           memberList.Text += user + Environment.NewLine; 
+           memberList.Text += user.Username + Environment.NewLine; 
         }
     }
 

@@ -58,11 +58,23 @@ public class ActiveGroups
                 {
                     userList.Add(client.Details);
                 }
-
-                return userList;
             }
         }
 
         return userList;
+    }
+
+    public List<ClientModel> GetGroupClientList(string groupId)
+    {
+        List<ClientModel> clientList = null;
+        lock (_lock)
+        {
+            if (_groups.ContainsKey(groupId))
+            {
+                clientList = _groups[groupId] as List<ClientModel>;
+            }
+        }
+        
+        return clientList;
     }
 }

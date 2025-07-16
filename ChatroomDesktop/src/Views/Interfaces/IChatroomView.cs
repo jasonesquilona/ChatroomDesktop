@@ -1,3 +1,5 @@
+using ChatroomServer.Models;
+
 namespace ChatroomDesktop.Views;
 
 public interface IChatroomView
@@ -6,6 +8,6 @@ public interface IChatroomView
     event EventHandler?  EnterClicked;
     event EventHandler? FormClosed;
     void AddMessage(string message);
-    void AddNewUser(string[] username);
+    void AddNewUser(List<UserDetails> username);
     void ClearMessageBox();
 }

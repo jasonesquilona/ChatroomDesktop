@@ -72,5 +72,8 @@ public partial class GroupChatsForm : Form, IGroupChatsView
             }
         }
     }
-    
+    public void HideForm()
+    {
+        this.Hide();
+    }
 }

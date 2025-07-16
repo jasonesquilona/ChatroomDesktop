@@ -68,7 +68,7 @@ public class Server
                         switch (chatMsg.ChatType)
                         {
                             case "JOIN":
-                                //client = await HandleJoinClient(clientID, chatMsg);
+                                await HandleJoinClient(chatMsg);
                                 break;
                             case "CHAT":
                                 //await HandleChatMessage(client, chatMsg);
@@ -79,7 +79,7 @@ public class Server
                     case LoginRequestMessage loginMsg:
                     {
                         var result = await HandleLogin(loginMsg, stream);
-                        if (result != null) continue;
+                        if (result == null) continue;
                         var details = new UserDetails { UserId = result.Userid, Username = result.Username };
                         client = new ClientModel(clientId, details);
                         lock(_clientsLock){
@@ -112,6 +112,11 @@ public class Server
         {
             DisconnectClient(clientId);
         }
+    }
+
+    private async Task HandleJoinClient(ChatMessage chatMsg)
+    {
+        await BroadcastMessage(chatMsg);
     }
 
     private async Task<bool> HandleJoinGroup(JoinGroupMessage joinGroupMsg, NetworkStream stream)
@@ -254,18 +259,20 @@ public class Server
     {
         if (message.ChatType == "JOIN")
         {
-            message.chatMessage = $"{message.Sender} has joined!";
+            message.chatMessage = $"{message.Sender.Username} has joined!";
             
         }
         else if (message.ChatType == "CHAT")
         {
-            message.chatMessage = $"{message.Sender}: {message.chatMessage}";
+            message.chatMessage = $"{message.Sender.Username}: {message.chatMessage}";
         }
-        var jsonString = JsonSerializer.Serialize(message);
-        var messageBytes = Encoding.UTF8.GetBytes(jsonString);
         lock (_clientsLock)
         {
-            foreach (var client in _loggedInClients)
+            message.UserList = _activeGroups.GetUserList(message.GroupCode);
+            var jsonString = JsonSerializer.Serialize(message);
+            var messageBytes = Encoding.UTF8.GetBytes(jsonString);
+            var loggedInGroupClients = _activeGroups.GetGroupClientList(message.GroupCode);
+            foreach (var client in loggedInGroupClients)
             {
                 var clientId = client?.ClientID;
                 var name = client?.Details.Username;

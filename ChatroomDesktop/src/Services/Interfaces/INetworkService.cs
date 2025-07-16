@@ -13,7 +13,7 @@ public interface INetworkService
 
     Task<UserModel> SendSignupData(string username, string password);
 
-    Task SendMessage(string message);
+    Task SendMessage(ChatMessage message);
 
     Task<ConfirmGroupJoinMessage> SendGroupCreationRequest(CreateGroupMessage message);
 
@@ -21,4 +21,5 @@ public interface INetworkService
 
     Task<ConfirmGroupJoinMessage?> SendJoinGroupRequest(UserModel userModel, string groupCode);
     Task<bool> ConnectToGroupChat(string groupName, string groupId, UserModel user);
+    Task HandleIncomingMessages();
 }

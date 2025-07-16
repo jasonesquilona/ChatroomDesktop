@@ -2,6 +2,6 @@ namespace ChatroomDesktop.Presenter;
 
 public interface IPresenter
 {
-    void Start();
+    Task Start();
     void Destroy();
 }
