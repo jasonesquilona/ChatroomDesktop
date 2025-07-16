@@ -1,8 +1,8 @@
 # Goals
--Create a Server Client Model Chatroom Service, that would have the server managing any communication between Users and the chat rooms
--Learn more about how C# works with Networks and Databases (in this project a LocalDB Server as used)
--Learn and Improv on my knowledge on how Model-View architectural pattern works (in this one a M-V-P was used)
--Learning how multi-threading works in C# and improving my understanding how multi-threading works in general
+- Create a Server Client Model Chatroom Service, that would have the server managing any communication between Users and the chat rooms
+- Learn more about how C# works with Networks and Databases (in this project a LocalDB Server as used)
+- Learn and Improv on my knowledge on how Model-View architectural pattern works (in this one a M-V-P was used)
+- Learning how multi-threading works in C# and improving my understanding how multi-threading works in general
 
 # Learnings/Challenges
 
