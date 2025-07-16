@@ -2,6 +2,7 @@
 -Create a Server Client Model Chatroom Service, that would have the server managing any communication between Users and the chat rooms
 -Learn more about how C# works with Networks and Databases (in this project a LocalDB Server as used)
 -Learn and Improv on my knowledge on how Model-View architectural pattern works (in this one a M-V-P was used)
+-Learning how multi-threading works in C# and improving my understanding how multi-threading works in general
 
 # Learnings/Challenges
 
@@ -28,3 +29,10 @@ This project albeit fun and really engaged and challenged my problem solving ski
 - Better Comments to improve readability
 - Improve planning when it comes to implementing new features
 - Expand and continue learning on how to make better OOP code
+
+# Future Improvements
+- Better handling of Closing App and ensuring all threads are closed properly upon closure
+- Introducing a log out button and a back out of chatroom button so users dont have to relog to join another chat room
+- Improve UI and smoothness of User Experience
+- Add more tests
+- Refactor code to clean up file orginzation and reuse code
