@@ -65,16 +65,7 @@ public class Server
                         await HandleSignup(signupMsg, stream);
                         break;
                     case ChatMessage chatMsg:
-                        switch (chatMsg.ChatType)
-                        {
-                            case "JOIN":
-                                await HandleJoinClient(chatMsg);
-                                break;
-                            case "CHAT":
-                                //await HandleChatMessage(client, chatMsg);
-                                break;
-                        }
-
+                        await HandleChatMessage(chatMsg);
                         break;
                     case LoginRequestMessage loginMsg:
                     {
@@ -114,7 +105,7 @@ public class Server
         }
     }
 
-    private async Task HandleJoinClient(ChatMessage chatMsg)
+    private async Task HandleChatMessage(ChatMessage chatMsg)
     {
         await BroadcastMessage(chatMsg);
     }
@@ -144,11 +135,7 @@ public class Server
         await SendResponseMessage(jsonString, stream);
         return success;
     }
-
-    private async Task HandleChatMessage(ClientModel? client, ChatMessage message)
-    {
-    }
-
+    
     private async Task<LoginConnectMessage> HandleLogin(LoginRequestMessage requestMessage, NetworkStream stream)
     {
         const string sql = @"SELECT u.id AS user_id, u.password AS password, g.name AS group_name, g.Code AS group_code " +
@@ -293,14 +280,6 @@ public class Server
             _loggedInClients.RemoveAll(p => p.ClientID == client);
             Console.WriteLine($"Client disconnected from {client.Client.RemoteEndPoint}");
             client.Close();
-        }
-    }
-
-    private string[] GetUserList()
-    {
-        lock (_clientsLock)
-        {
-            return _loggedInClients.Select(clientName => clientName.Details.Username).ToArray();
         }
     }
 
